@@ -4,7 +4,9 @@ import { GoogleMapPreview } from "@/components/GoogleMapPreview";
 import { Header } from "@/components/Header";
 import { InternalLinkHub } from "@/components/InternalLinkHub";
 import { ListingCard, StatusBadge } from "@/components/ListingCard";
+import { PublicDataFacts } from "@/components/PublicDataFacts";
 import { listings, statusLabels, typeLabels } from "@/data/site";
+import { getListingPublicDataFacts, getPublicDataGeneratedAt } from "@/lib/public-data-enrichment";
 
 export function generateStaticParams() {
   return listings.map((listing) => ({ slug: listing.slug }));
@@ -25,6 +27,7 @@ export default async function ListingPage({ params }: { params: Promise<{ slug: 
   const listing = listings.find((item) => item.slug === slug);
   if (!listing) notFound();
   const related = listings.filter((item) => item.slug !== listing.slug && (item.city === listing.city || item.county === listing.county)).slice(0, 3);
+  const publicDataFacts = getListingPublicDataFacts(listing.slug);
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Residence",
@@ -64,6 +67,14 @@ export default async function ListingPage({ params }: { params: Promise<{ slug: 
           </div>
         </div>
         <GoogleMapPreview listing={listing} />
+      </section>
+      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <PublicDataFacts
+          title="Address-level public data joins"
+          description="Real LRPR listings will be enriched from official public data after the address is approved/submitted, not copied from unreliable third-party listing portals."
+          facts={publicDataFacts}
+          generatedAt={getPublicDataGeneratedAt()}
+        />
       </section>
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <h2 className="text-3xl font-black tracking-tight">Related local records</h2>

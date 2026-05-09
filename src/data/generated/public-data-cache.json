@@ -1,0 +1,744 @@
+{
+  "version": 1,
+  "generatedAt": "2026-05-09T02:07:31.630Z",
+  "region": "Florida Lake Region",
+  "enrichmentGroups": {
+    "census": {
+      "sourceName": "U.S. Census ACS 5-Year Profile API",
+      "sourceUrl": "https://api.census.gov/data/2022/acs/acs5/profile"
+    },
+    "weather": {
+      "sourceName": "National Weather Service API",
+      "sourceUrl": "https://api.weather.gov/points"
+    },
+    "flood": {
+      "sourceName": "FEMA National Flood Hazard Layer",
+      "sourceUrl": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer"
+    },
+    "parcels": {
+      "sourceName": "County parcel GIS + Florida statewide cadastral fallback",
+      "sourceUrl": "https://floridarevenue.com/property/Pages/Cofficial_OfficialCountyAppraiserSites.aspx"
+    },
+    "officialContacts": {
+      "cities": {
+        "keystone-heights": {
+          "name": "Keystone Heights",
+          "type": "city",
+          "officialUrl": "https://www.keystoneheights.us/",
+          "sourceUrl": "https://www.keystoneheights.us/",
+          "note": "Official municipal resource for Keystone Heights."
+        },
+        "starke": {
+          "name": "Starke",
+          "type": "city",
+          "officialUrl": "https://www.cityofstarke.org/",
+          "sourceUrl": "https://www.cityofstarke.org/",
+          "note": "Official municipal resource for Starke."
+        },
+        "melrose": {
+          "name": "Melrose",
+          "type": "city",
+          "officialUrl": null,
+          "sourceUrl": "https://www.usa.gov/local-governments",
+          "note": "Melrose is served through county and regional official resources."
+        },
+        "hawthorne": {
+          "name": "Hawthorne",
+          "type": "city",
+          "officialUrl": "https://www.cityofhawthorne.net/",
+          "sourceUrl": "https://www.cityofhawthorne.net/",
+          "note": "Official municipal resource for Hawthorne."
+        },
+        "interlachen": {
+          "name": "Interlachen",
+          "type": "city",
+          "officialUrl": "https://www.interlachen-fl.gov/",
+          "sourceUrl": "https://www.interlachen-fl.gov/",
+          "note": "Official municipal resource for Interlachen."
+        },
+        "florahome": {
+          "name": "Florahome",
+          "type": "city",
+          "officialUrl": null,
+          "sourceUrl": "https://www.usa.gov/local-governments",
+          "note": "Florahome is served through county and regional official resources."
+        },
+        "hampton": {
+          "name": "Hampton",
+          "type": "city",
+          "officialUrl": "https://www.hamptonfl.com/",
+          "sourceUrl": "https://www.hamptonfl.com/",
+          "note": "Official municipal resource for Hampton."
+        }
+      },
+      "counties": {
+        "clay-county": {
+          "name": "Clay County",
+          "type": "county",
+          "officialUrl": "https://www.claycountygov.com/",
+          "sourceUrl": "https://www.claycountygov.com/",
+          "note": "Official county resource for property, permitting, utilities, public notices, and local departments in Clay County."
+        },
+        "bradford-county": {
+          "name": "Bradford County",
+          "type": "county",
+          "officialUrl": "https://bradfordcountyfl.gov/",
+          "sourceUrl": "https://bradfordcountyfl.gov/",
+          "note": "Official county resource for property, permitting, utilities, public notices, and local departments in Bradford County."
+        },
+        "putnam-county": {
+          "name": "Putnam County",
+          "type": "county",
+          "officialUrl": "https://www.putnam-fl.gov/",
+          "sourceUrl": "https://www.putnam-fl.gov/",
+          "note": "Official county resource for property, permitting, utilities, public notices, and local departments in Putnam County."
+        },
+        "alachua-county": {
+          "name": "Alachua County",
+          "type": "county",
+          "officialUrl": "https://alachuacounty.us/",
+          "sourceUrl": "https://alachuacounty.us/",
+          "note": "Official county resource for property, permitting, utilities, public notices, and local departments in Alachua County."
+        }
+      }
+    }
+  },
+  "parcelSources": {
+    "clay-county": {
+      "county": "Clay County",
+      "sourceName": "Clay County Property Appraiser Parcel FeatureServer",
+      "sourceUrl": "https://services2.arcgis.com/kQPfxbSKhIDcSFXL/ArcGIS/rest/services/ClayCountyParcel/FeatureServer/6",
+      "isFallback": false,
+      "note": "Clay County has a direct public parcel/GIS source for parcel-context enrichment."
+    },
+    "bradford-county": {
+      "county": "Bradford County",
+      "sourceName": "Florida Statewide Cadastral fallback",
+      "sourceUrl": "https://services9.arcgis.com/Gh9awoU677aKree0/arcgis/rest/services/Florida_Statewide_Cadastral/FeatureServer",
+      "isFallback": true,
+      "note": "Bradford County uses the Florida statewide cadastral layer until a direct official county parcel endpoint is approved or confirmed."
+    },
+    "putnam-county": {
+      "county": "Putnam County",
+      "sourceName": "Putnam County Property Appraiser CadastralData FeatureServer",
+      "sourceUrl": "https://pamap.putnam-fl.gov/server/rest/services/CadastralData/FeatureServer/2",
+      "isFallback": false,
+      "note": "Putnam County has a direct public parcel/GIS source for parcel-context enrichment."
+    },
+    "alachua-county": {
+      "county": "Alachua County",
+      "sourceName": "Alachua County PublicParcel FeatureServer",
+      "sourceUrl": "https://services.arcgis.com/cNo3jpluyt69V8Ek/arcgis/rest/services/PublicParcel/FeatureServer",
+      "isFallback": false,
+      "note": "Alachua County has a direct public parcel/GIS source for parcel-context enrichment."
+    }
+  },
+  "cityFacts": {
+    "keystone-heights": {
+      "name": "Keystone Heights",
+      "slug": "keystone-heights",
+      "generatedAt": "2026-05-09T02:07:31.630Z",
+      "facts": [
+        {
+          "label": "Census profile",
+          "value": "Clay County, Florida: 219,650 residents, 85,593 housing units, and median household income $82,242 per ACS 5-year profile.",
+          "sourceName": "U.S. Census ACS 5-Year Profile API",
+          "sourceUrl": "https://api.census.gov/data/2022/acs/acs5/profile"
+        },
+        {
+          "label": "Weather office",
+          "value": "NWS point lookup configured for 29.7861, -82.0315. Forecast office: JAX.",
+          "sourceName": "National Weather Service API",
+          "sourceUrl": "https://api.weather.gov/points/29.7861,-82.0315"
+        },
+        {
+          "label": "Flood map lookup",
+          "value": "FEMA NFHL spatial lookup configured for 29.7861, -82.0315; publish flood-zone labels only after cache has matched the official NFHL layer.",
+          "sourceName": "FEMA National Flood Hazard Layer",
+          "sourceUrl": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer"
+        },
+        {
+          "label": "Parcel data",
+          "value": "Clay County has a direct public parcel/GIS source for parcel-context enrichment.",
+          "sourceName": "Clay County Property Appraiser Parcel FeatureServer",
+          "sourceUrl": "https://services2.arcgis.com/kQPfxbSKhIDcSFXL/ArcGIS/rest/services/ClayCountyParcel/FeatureServer/6"
+        },
+        {
+          "label": "Official contact",
+          "value": "Official municipal resource for Keystone Heights.",
+          "sourceName": "Keystone Heights",
+          "sourceUrl": "https://www.keystoneheights.us/"
+        }
+      ]
+    },
+    "starke": {
+      "name": "Starke",
+      "slug": "starke",
+      "generatedAt": "2026-05-09T02:07:31.630Z",
+      "facts": [
+        {
+          "label": "Census profile",
+          "value": "Bradford County, Florida: 27,816 residents, 10,771 housing units, and median household income $54,759 per ACS 5-year profile.",
+          "sourceName": "U.S. Census ACS 5-Year Profile API",
+          "sourceUrl": "https://api.census.gov/data/2022/acs/acs5/profile"
+        },
+        {
+          "label": "Weather office",
+          "value": "NWS point lookup configured for 29.9441, -82.1098. Forecast office: JAX.",
+          "sourceName": "National Weather Service API",
+          "sourceUrl": "https://api.weather.gov/points/29.9441,-82.1098"
+        },
+        {
+          "label": "Flood map lookup",
+          "value": "FEMA NFHL spatial lookup configured for 29.9441, -82.1098; publish flood-zone labels only after cache has matched the official NFHL layer.",
+          "sourceName": "FEMA National Flood Hazard Layer",
+          "sourceUrl": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer"
+        },
+        {
+          "label": "Parcel data",
+          "value": "Bradford County uses the Florida statewide cadastral layer until a direct official county parcel endpoint is approved or confirmed.",
+          "sourceName": "Florida Statewide Cadastral fallback",
+          "sourceUrl": "https://services9.arcgis.com/Gh9awoU677aKree0/arcgis/rest/services/Florida_Statewide_Cadastral/FeatureServer"
+        },
+        {
+          "label": "Official contact",
+          "value": "Official municipal resource for Starke.",
+          "sourceName": "Starke",
+          "sourceUrl": "https://www.cityofstarke.org/"
+        }
+      ]
+    },
+    "melrose": {
+      "name": "Melrose",
+      "slug": "melrose",
+      "generatedAt": "2026-05-09T02:07:31.630Z",
+      "facts": [
+        {
+          "label": "Census profile",
+          "value": "Putnam County, Florida: 73,604 residents, 36,183 housing units, and median household income $44,852 per ACS 5-year profile.",
+          "sourceName": "U.S. Census ACS 5-Year Profile API",
+          "sourceUrl": "https://api.census.gov/data/2022/acs/acs5/profile"
+        },
+        {
+          "label": "Weather office",
+          "value": "NWS point lookup configured for 29.7108, -82.0498. Forecast office: JAX.",
+          "sourceName": "National Weather Service API",
+          "sourceUrl": "https://api.weather.gov/points/29.7108,-82.0498"
+        },
+        {
+          "label": "Flood map lookup",
+          "value": "FEMA NFHL spatial lookup configured for 29.7108, -82.0498; publish flood-zone labels only after cache has matched the official NFHL layer.",
+          "sourceName": "FEMA National Flood Hazard Layer",
+          "sourceUrl": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer"
+        },
+        {
+          "label": "Parcel data",
+          "value": "Putnam County has a direct public parcel/GIS source for parcel-context enrichment.",
+          "sourceName": "Putnam County Property Appraiser CadastralData FeatureServer",
+          "sourceUrl": "https://pamap.putnam-fl.gov/server/rest/services/CadastralData/FeatureServer/2"
+        },
+        {
+          "label": "Official contact",
+          "value": "Melrose is served through county and regional official resources.",
+          "sourceName": "Melrose",
+          "sourceUrl": "https://www.usa.gov/local-governments"
+        }
+      ]
+    },
+    "hawthorne": {
+      "name": "Hawthorne",
+      "slug": "hawthorne",
+      "generatedAt": "2026-05-09T02:07:31.630Z",
+      "facts": [
+        {
+          "label": "Census profile",
+          "value": "Alachua County, Florida: 279,729 residents, 123,751 housing units, and median household income $57,566 per ACS 5-year profile.",
+          "sourceName": "U.S. Census ACS 5-Year Profile API",
+          "sourceUrl": "https://api.census.gov/data/2022/acs/acs5/profile"
+        },
+        {
+          "label": "Weather office",
+          "value": "NWS point lookup configured for 29.5919, -82.0873. Forecast office: JAX.",
+          "sourceName": "National Weather Service API",
+          "sourceUrl": "https://api.weather.gov/points/29.5919,-82.0873"
+        },
+        {
+          "label": "Flood map lookup",
+          "value": "FEMA NFHL spatial lookup configured for 29.5919, -82.0873; publish flood-zone labels only after cache has matched the official NFHL layer.",
+          "sourceName": "FEMA National Flood Hazard Layer",
+          "sourceUrl": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer"
+        },
+        {
+          "label": "Parcel data",
+          "value": "Alachua County has a direct public parcel/GIS source for parcel-context enrichment.",
+          "sourceName": "Alachua County PublicParcel FeatureServer",
+          "sourceUrl": "https://services.arcgis.com/cNo3jpluyt69V8Ek/arcgis/rest/services/PublicParcel/FeatureServer"
+        },
+        {
+          "label": "Official contact",
+          "value": "Official municipal resource for Hawthorne.",
+          "sourceName": "Hawthorne",
+          "sourceUrl": "https://www.cityofhawthorne.net/"
+        }
+      ]
+    },
+    "interlachen": {
+      "name": "Interlachen",
+      "slug": "interlachen",
+      "generatedAt": "2026-05-09T02:07:31.630Z",
+      "facts": [
+        {
+          "label": "Census profile",
+          "value": "Putnam County, Florida: 73,604 residents, 36,183 housing units, and median household income $44,852 per ACS 5-year profile.",
+          "sourceName": "U.S. Census ACS 5-Year Profile API",
+          "sourceUrl": "https://api.census.gov/data/2022/acs/acs5/profile"
+        },
+        {
+          "label": "Weather office",
+          "value": "NWS point lookup configured for 29.6236, -81.8904. Forecast office: JAX.",
+          "sourceName": "National Weather Service API",
+          "sourceUrl": "https://api.weather.gov/points/29.6236,-81.8904"
+        },
+        {
+          "label": "Flood map lookup",
+          "value": "FEMA NFHL spatial lookup configured for 29.6236, -81.8904; publish flood-zone labels only after cache has matched the official NFHL layer.",
+          "sourceName": "FEMA National Flood Hazard Layer",
+          "sourceUrl": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer"
+        },
+        {
+          "label": "Parcel data",
+          "value": "Putnam County has a direct public parcel/GIS source for parcel-context enrichment.",
+          "sourceName": "Putnam County Property Appraiser CadastralData FeatureServer",
+          "sourceUrl": "https://pamap.putnam-fl.gov/server/rest/services/CadastralData/FeatureServer/2"
+        },
+        {
+          "label": "Official contact",
+          "value": "Official municipal resource for Interlachen.",
+          "sourceName": "Interlachen",
+          "sourceUrl": "https://www.interlachen-fl.gov/"
+        }
+      ]
+    },
+    "florahome": {
+      "name": "Florahome",
+      "slug": "florahome",
+      "generatedAt": "2026-05-09T02:07:31.630Z",
+      "facts": [
+        {
+          "label": "Census profile",
+          "value": "Putnam County, Florida: 73,604 residents, 36,183 housing units, and median household income $44,852 per ACS 5-year profile.",
+          "sourceName": "U.S. Census ACS 5-Year Profile API",
+          "sourceUrl": "https://api.census.gov/data/2022/acs/acs5/profile"
+        },
+        {
+          "label": "Weather office",
+          "value": "NWS point lookup configured for 29.7311, -81.8859. Forecast office: JAX.",
+          "sourceName": "National Weather Service API",
+          "sourceUrl": "https://api.weather.gov/points/29.7311,-81.8859"
+        },
+        {
+          "label": "Flood map lookup",
+          "value": "FEMA NFHL spatial lookup configured for 29.7311, -81.8859; publish flood-zone labels only after cache has matched the official NFHL layer.",
+          "sourceName": "FEMA National Flood Hazard Layer",
+          "sourceUrl": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer"
+        },
+        {
+          "label": "Parcel data",
+          "value": "Putnam County has a direct public parcel/GIS source for parcel-context enrichment.",
+          "sourceName": "Putnam County Property Appraiser CadastralData FeatureServer",
+          "sourceUrl": "https://pamap.putnam-fl.gov/server/rest/services/CadastralData/FeatureServer/2"
+        },
+        {
+          "label": "Official contact",
+          "value": "Florahome is served through county and regional official resources.",
+          "sourceName": "Florahome",
+          "sourceUrl": "https://www.usa.gov/local-governments"
+        }
+      ]
+    },
+    "hampton": {
+      "name": "Hampton",
+      "slug": "hampton",
+      "generatedAt": "2026-05-09T02:07:31.630Z",
+      "facts": [
+        {
+          "label": "Census profile",
+          "value": "Bradford County, Florida: 27,816 residents, 10,771 housing units, and median household income $54,759 per ACS 5-year profile.",
+          "sourceName": "U.S. Census ACS 5-Year Profile API",
+          "sourceUrl": "https://api.census.gov/data/2022/acs/acs5/profile"
+        },
+        {
+          "label": "Weather office",
+          "value": "NWS point lookup configured for 29.8655, -82.1357. Forecast office: JAX.",
+          "sourceName": "National Weather Service API",
+          "sourceUrl": "https://api.weather.gov/points/29.8655,-82.1357"
+        },
+        {
+          "label": "Flood map lookup",
+          "value": "FEMA NFHL spatial lookup configured for 29.8655, -82.1357; publish flood-zone labels only after cache has matched the official NFHL layer.",
+          "sourceName": "FEMA National Flood Hazard Layer",
+          "sourceUrl": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer"
+        },
+        {
+          "label": "Parcel data",
+          "value": "Bradford County uses the Florida statewide cadastral layer until a direct official county parcel endpoint is approved or confirmed.",
+          "sourceName": "Florida Statewide Cadastral fallback",
+          "sourceUrl": "https://services9.arcgis.com/Gh9awoU677aKree0/arcgis/rest/services/Florida_Statewide_Cadastral/FeatureServer"
+        },
+        {
+          "label": "Official contact",
+          "value": "Official municipal resource for Hampton.",
+          "sourceName": "Hampton",
+          "sourceUrl": "https://www.hamptonfl.com/"
+        }
+      ]
+    }
+  },
+  "countyFacts": {
+    "clay-county": {
+      "name": "Clay County",
+      "slug": "clay-county",
+      "generatedAt": "2026-05-09T02:07:31.630Z",
+      "facts": [
+        {
+          "label": "Census profile",
+          "value": "Clay County, Florida: 219,650 residents, 85,593 housing units, and median household income $82,242 per ACS 5-year profile.",
+          "sourceName": "U.S. Census ACS 5-Year Profile API",
+          "sourceUrl": "https://api.census.gov/data/2022/acs/acs5/profile"
+        },
+        {
+          "label": "Parcel data",
+          "value": "Clay County has a direct public parcel/GIS source for parcel-context enrichment.",
+          "sourceName": "Clay County Property Appraiser Parcel FeatureServer",
+          "sourceUrl": "https://services2.arcgis.com/kQPfxbSKhIDcSFXL/ArcGIS/rest/services/ClayCountyParcel/FeatureServer/6"
+        },
+        {
+          "label": "Flood map coverage",
+          "value": "FEMA NFHL coverage configured for Clay County property and city pages.",
+          "sourceName": "FEMA National Flood Hazard Layer",
+          "sourceUrl": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer"
+        },
+        {
+          "label": "Official county contact",
+          "value": "Official county resource for property, permitting, utilities, public notices, and local departments in Clay County.",
+          "sourceName": "Clay County",
+          "sourceUrl": "https://www.claycountygov.com/"
+        }
+      ]
+    },
+    "bradford-county": {
+      "name": "Bradford County",
+      "slug": "bradford-county",
+      "generatedAt": "2026-05-09T02:07:31.630Z",
+      "facts": [
+        {
+          "label": "Census profile",
+          "value": "Bradford County, Florida: 27,816 residents, 10,771 housing units, and median household income $54,759 per ACS 5-year profile.",
+          "sourceName": "U.S. Census ACS 5-Year Profile API",
+          "sourceUrl": "https://api.census.gov/data/2022/acs/acs5/profile"
+        },
+        {
+          "label": "Parcel data",
+          "value": "Bradford County uses the Florida statewide cadastral layer until a direct official county parcel endpoint is approved or confirmed.",
+          "sourceName": "Florida Statewide Cadastral fallback",
+          "sourceUrl": "https://services9.arcgis.com/Gh9awoU677aKree0/arcgis/rest/services/Florida_Statewide_Cadastral/FeatureServer"
+        },
+        {
+          "label": "Flood map coverage",
+          "value": "FEMA NFHL coverage configured for Bradford County property and city pages.",
+          "sourceName": "FEMA National Flood Hazard Layer",
+          "sourceUrl": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer"
+        },
+        {
+          "label": "Official county contact",
+          "value": "Official county resource for property, permitting, utilities, public notices, and local departments in Bradford County.",
+          "sourceName": "Bradford County",
+          "sourceUrl": "https://bradfordcountyfl.gov/"
+        }
+      ]
+    },
+    "putnam-county": {
+      "name": "Putnam County",
+      "slug": "putnam-county",
+      "generatedAt": "2026-05-09T02:07:31.630Z",
+      "facts": [
+        {
+          "label": "Census profile",
+          "value": "Putnam County, Florida: 73,604 residents, 36,183 housing units, and median household income $44,852 per ACS 5-year profile.",
+          "sourceName": "U.S. Census ACS 5-Year Profile API",
+          "sourceUrl": "https://api.census.gov/data/2022/acs/acs5/profile"
+        },
+        {
+          "label": "Parcel data",
+          "value": "Putnam County has a direct public parcel/GIS source for parcel-context enrichment.",
+          "sourceName": "Putnam County Property Appraiser CadastralData FeatureServer",
+          "sourceUrl": "https://pamap.putnam-fl.gov/server/rest/services/CadastralData/FeatureServer/2"
+        },
+        {
+          "label": "Flood map coverage",
+          "value": "FEMA NFHL coverage configured for Putnam County property and city pages.",
+          "sourceName": "FEMA National Flood Hazard Layer",
+          "sourceUrl": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer"
+        },
+        {
+          "label": "Official county contact",
+          "value": "Official county resource for property, permitting, utilities, public notices, and local departments in Putnam County.",
+          "sourceName": "Putnam County",
+          "sourceUrl": "https://www.putnam-fl.gov/"
+        }
+      ]
+    },
+    "alachua-county": {
+      "name": "Alachua County",
+      "slug": "alachua-county",
+      "generatedAt": "2026-05-09T02:07:31.630Z",
+      "facts": [
+        {
+          "label": "Census profile",
+          "value": "Alachua County, Florida: 279,729 residents, 123,751 housing units, and median household income $57,566 per ACS 5-year profile.",
+          "sourceName": "U.S. Census ACS 5-Year Profile API",
+          "sourceUrl": "https://api.census.gov/data/2022/acs/acs5/profile"
+        },
+        {
+          "label": "Parcel data",
+          "value": "Alachua County has a direct public parcel/GIS source for parcel-context enrichment.",
+          "sourceName": "Alachua County PublicParcel FeatureServer",
+          "sourceUrl": "https://services.arcgis.com/cNo3jpluyt69V8Ek/arcgis/rest/services/PublicParcel/FeatureServer"
+        },
+        {
+          "label": "Flood map coverage",
+          "value": "FEMA NFHL coverage configured for Alachua County property and city pages.",
+          "sourceName": "FEMA National Flood Hazard Layer",
+          "sourceUrl": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer"
+        },
+        {
+          "label": "Official county contact",
+          "value": "Official county resource for property, permitting, utilities, public notices, and local departments in Alachua County.",
+          "sourceName": "Alachua County",
+          "sourceUrl": "https://alachuacounty.us/"
+        }
+      ]
+    }
+  },
+  "listingFacts": {
+    "demo-lake-geneva-road-keystone-heights-fl": {
+      "name": "Demo Lake Geneva Road, Keystone Heights",
+      "slug": "demo-lake-geneva-road-keystone-heights-fl",
+      "generatedAt": "2026-05-09T02:07:31.630Z",
+      "facts": [
+        {
+          "label": "Census geocoder",
+          "value": "Address-to-tract/block-group join configured for Keystone Heights, Clay County; use only approved listing addresses.",
+          "sourceName": "U.S. Census Geocoder Geographies API",
+          "sourceUrl": "https://geocoding.geo.census.gov/geocoder/geographies/address"
+        },
+        {
+          "label": "Flood map lookup",
+          "value": "FEMA NFHL spatial lookup configured for 29.7861, -82.0315; publish flood-zone labels only after cache has matched the official NFHL layer.",
+          "sourceName": "FEMA National Flood Hazard Layer",
+          "sourceUrl": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer"
+        },
+        {
+          "label": "Parcel data",
+          "value": "Clay County has a direct public parcel/GIS source for parcel-context enrichment.",
+          "sourceName": "Clay County Property Appraiser Parcel FeatureServer",
+          "sourceUrl": "https://services2.arcgis.com/kQPfxbSKhIDcSFXL/ArcGIS/rest/services/ClayCountyParcel/FeatureServer/6"
+        },
+        {
+          "label": "Weather context",
+          "value": "NWS point metadata configured for 29.7861, -82.0315.",
+          "sourceName": "National Weather Service API",
+          "sourceUrl": "https://api.weather.gov/points/29.7861,-82.0315"
+        }
+      ]
+    },
+    "demo-walnut-street-starke-fl": {
+      "name": "Demo Walnut Street, Starke",
+      "slug": "demo-walnut-street-starke-fl",
+      "generatedAt": "2026-05-09T02:07:31.630Z",
+      "facts": [
+        {
+          "label": "Census geocoder",
+          "value": "Address-to-tract/block-group join configured for Starke, Bradford County; use only approved listing addresses.",
+          "sourceName": "U.S. Census Geocoder Geographies API",
+          "sourceUrl": "https://geocoding.geo.census.gov/geocoder/geographies/address"
+        },
+        {
+          "label": "Flood map lookup",
+          "value": "FEMA NFHL spatial lookup configured for 29.9441, -82.1098; publish flood-zone labels only after cache has matched the official NFHL layer.",
+          "sourceName": "FEMA National Flood Hazard Layer",
+          "sourceUrl": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer"
+        },
+        {
+          "label": "Parcel data",
+          "value": "Bradford County uses the Florida statewide cadastral layer until a direct official county parcel endpoint is approved or confirmed.",
+          "sourceName": "Florida Statewide Cadastral fallback",
+          "sourceUrl": "https://services9.arcgis.com/Gh9awoU677aKree0/arcgis/rest/services/Florida_Statewide_Cadastral/FeatureServer"
+        },
+        {
+          "label": "Weather context",
+          "value": "NWS point metadata configured for 29.9441, -82.1098.",
+          "sourceName": "National Weather Service API",
+          "sourceUrl": "https://api.weather.gov/points/29.9441,-82.1098"
+        }
+      ]
+    },
+    "demo-lake-santa-fe-area-melrose-fl": {
+      "name": "Demo Lake Santa Fe Area, Melrose",
+      "slug": "demo-lake-santa-fe-area-melrose-fl",
+      "generatedAt": "2026-05-09T02:07:31.630Z",
+      "facts": [
+        {
+          "label": "Census geocoder",
+          "value": "Address-to-tract/block-group join configured for Melrose, Putnam County; use only approved listing addresses.",
+          "sourceName": "U.S. Census Geocoder Geographies API",
+          "sourceUrl": "https://geocoding.geo.census.gov/geocoder/geographies/address"
+        },
+        {
+          "label": "Flood map lookup",
+          "value": "FEMA NFHL spatial lookup configured for 29.7108, -82.0498; publish flood-zone labels only after cache has matched the official NFHL layer.",
+          "sourceName": "FEMA National Flood Hazard Layer",
+          "sourceUrl": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer"
+        },
+        {
+          "label": "Parcel data",
+          "value": "Putnam County has a direct public parcel/GIS source for parcel-context enrichment.",
+          "sourceName": "Putnam County Property Appraiser CadastralData FeatureServer",
+          "sourceUrl": "https://pamap.putnam-fl.gov/server/rest/services/CadastralData/FeatureServer/2"
+        },
+        {
+          "label": "Weather context",
+          "value": "NWS point metadata configured for 29.7108, -82.0498.",
+          "sourceName": "National Weather Service API",
+          "sourceUrl": "https://api.weather.gov/points/29.7108,-82.0498"
+        }
+      ]
+    },
+    "demo-main-street-interlachen-fl": {
+      "name": "Demo Main Street, Interlachen",
+      "slug": "demo-main-street-interlachen-fl",
+      "generatedAt": "2026-05-09T02:07:31.630Z",
+      "facts": [
+        {
+          "label": "Census geocoder",
+          "value": "Address-to-tract/block-group join configured for Interlachen, Putnam County; use only approved listing addresses.",
+          "sourceName": "U.S. Census Geocoder Geographies API",
+          "sourceUrl": "https://geocoding.geo.census.gov/geocoder/geographies/address"
+        },
+        {
+          "label": "Flood map lookup",
+          "value": "FEMA NFHL spatial lookup configured for 29.6236, -81.8904; publish flood-zone labels only after cache has matched the official NFHL layer.",
+          "sourceName": "FEMA National Flood Hazard Layer",
+          "sourceUrl": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer"
+        },
+        {
+          "label": "Parcel data",
+          "value": "Putnam County has a direct public parcel/GIS source for parcel-context enrichment.",
+          "sourceName": "Putnam County Property Appraiser CadastralData FeatureServer",
+          "sourceUrl": "https://pamap.putnam-fl.gov/server/rest/services/CadastralData/FeatureServer/2"
+        },
+        {
+          "label": "Weather context",
+          "value": "NWS point metadata configured for 29.6236, -81.8904.",
+          "sourceName": "National Weather Service API",
+          "sourceUrl": "https://api.weather.gov/points/29.6236,-81.8904"
+        }
+      ]
+    },
+    "demo-johnson-street-hawthorne-fl": {
+      "name": "Demo Johnson Street, Hawthorne",
+      "slug": "demo-johnson-street-hawthorne-fl",
+      "generatedAt": "2026-05-09T02:07:31.630Z",
+      "facts": [
+        {
+          "label": "Census geocoder",
+          "value": "Address-to-tract/block-group join configured for Hawthorne, Alachua County; use only approved listing addresses.",
+          "sourceName": "U.S. Census Geocoder Geographies API",
+          "sourceUrl": "https://geocoding.geo.census.gov/geocoder/geographies/address"
+        },
+        {
+          "label": "Flood map lookup",
+          "value": "FEMA NFHL spatial lookup configured for 29.5919, -82.0873; publish flood-zone labels only after cache has matched the official NFHL layer.",
+          "sourceName": "FEMA National Flood Hazard Layer",
+          "sourceUrl": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer"
+        },
+        {
+          "label": "Parcel data",
+          "value": "Alachua County has a direct public parcel/GIS source for parcel-context enrichment.",
+          "sourceName": "Alachua County PublicParcel FeatureServer",
+          "sourceUrl": "https://services.arcgis.com/cNo3jpluyt69V8Ek/arcgis/rest/services/PublicParcel/FeatureServer"
+        },
+        {
+          "label": "Weather context",
+          "value": "NWS point metadata configured for 29.5919, -82.0873.",
+          "sourceName": "National Weather Service API",
+          "sourceUrl": "https://api.weather.gov/points/29.5919,-82.0873"
+        }
+      ]
+    }
+  },
+  "livePulls": {
+    "censusByCounty": {
+      "clay-county": {
+        "sourceUrl": "https://api.census.gov/data/2022/acs/acs5/profile?get=NAME%2CDP05_0001E%2CDP03_0062E%2CDP04_0001E&for=county%3A019&in=state%3A12",
+        "summary": "Clay County, Florida: 219,650 residents, 85,593 housing units, and median household income $82,242 per ACS 5-year profile."
+      },
+      "alachua-county": {
+        "sourceUrl": "https://api.census.gov/data/2022/acs/acs5/profile?get=NAME%2CDP05_0001E%2CDP03_0062E%2CDP04_0001E&for=county%3A001&in=state%3A12",
+        "summary": "Alachua County, Florida: 279,729 residents, 123,751 housing units, and median household income $57,566 per ACS 5-year profile."
+      },
+      "bradford-county": {
+        "sourceUrl": "https://api.census.gov/data/2022/acs/acs5/profile?get=NAME%2CDP05_0001E%2CDP03_0062E%2CDP04_0001E&for=county%3A007&in=state%3A12",
+        "summary": "Bradford County, Florida: 27,816 residents, 10,771 housing units, and median household income $54,759 per ACS 5-year profile."
+      },
+      "putnam-county": {
+        "sourceUrl": "https://api.census.gov/data/2022/acs/acs5/profile?get=NAME%2CDP05_0001E%2CDP03_0062E%2CDP04_0001E&for=county%3A107&in=state%3A12",
+        "summary": "Putnam County, Florida: 73,604 residents, 36,183 housing units, and median household income $44,852 per ACS 5-year profile."
+      }
+    },
+    "weatherByCity": {
+      "starke": {
+        "sourceUrl": "https://api.weather.gov/points/29.9441,-82.1098",
+        "forecastOffice": "JAX",
+        "gridId": "JAX",
+        "forecastUrl": "https://api.weather.gov/gridpoints/JAX/50,46/forecast"
+      },
+      "hampton": {
+        "sourceUrl": "https://api.weather.gov/points/29.8655,-82.1357",
+        "forecastOffice": "JAX",
+        "gridId": "JAX",
+        "forecastUrl": "https://api.weather.gov/gridpoints/JAX/50,42/forecast"
+      },
+      "florahome": {
+        "sourceUrl": "https://api.weather.gov/points/29.7311,-81.8859",
+        "forecastOffice": "JAX",
+        "gridId": "JAX",
+        "forecastUrl": "https://api.weather.gov/gridpoints/JAX/60,37/forecast"
+      },
+      "hawthorne": {
+        "sourceUrl": "https://api.weather.gov/points/29.5919,-82.0873",
+        "forecastOffice": "JAX",
+        "gridId": "JAX",
+        "forecastUrl": "https://api.weather.gov/gridpoints/JAX/52,31/forecast"
+      },
+      "melrose": {
+        "sourceUrl": "https://api.weather.gov/points/29.7108,-82.0498",
+        "forecastOffice": "JAX",
+        "gridId": "JAX",
+        "forecastUrl": "https://api.weather.gov/gridpoints/JAX/53,36/forecast"
+      },
+      "interlachen": {
+        "sourceUrl": "https://api.weather.gov/points/29.6236,-81.8904",
+        "forecastOffice": "JAX",
+        "gridId": "JAX",
+        "forecastUrl": "https://api.weather.gov/gridpoints/JAX/60,33/forecast"
+      },
+      "keystone-heights": {
+        "sourceUrl": "https://api.weather.gov/points/29.7861,-82.0315",
+        "forecastOffice": "JAX",
+        "gridId": "JAX",
+        "forecastUrl": "https://api.weather.gov/gridpoints/JAX/54,39/forecast"
+      }
+    }
+  }
+}

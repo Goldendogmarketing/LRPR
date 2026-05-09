@@ -3,8 +3,10 @@ import { DatasetSourcePanel } from "@/components/DatasetSourcePanel";
 import { Header } from "@/components/Header";
 import { InternalLinkHub } from "@/components/InternalLinkHub";
 import { ListingCard } from "@/components/ListingCard";
+import { PublicDataFacts } from "@/components/PublicDataFacts";
 import { getDatasetsForCounty } from "@/data/datasets";
 import { cities, counties, getListingsByCounty } from "@/data/site";
+import { getCountyPublicDataFacts, getPublicDataGeneratedAt } from "@/lib/public-data-enrichment";
 
 export function generateStaticParams() {
   return counties.map((county) => ({ slug: county.slug }));
@@ -27,6 +29,7 @@ export default async function CountyPage({ params }: { params: Promise<{ slug: s
   const countyListings = getListingsByCounty(county.name);
   const countyCities = cities.filter((city) => city.counties.includes(county.name));
   const countyDatasets = getDatasetsForCounty(county.name);
+  const publicDataFacts = getCountyPublicDataFacts(county.slug);
 
   return (
     <main className="min-h-screen bg-[#f7f3eb] text-slate-950">
@@ -44,6 +47,14 @@ export default async function CountyPage({ params }: { params: Promise<{ slug: s
         <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {countyListings.length > 0 ? countyListings.map((listing) => <ListingCard listing={listing} key={listing.id} />) : <p className="rounded-3xl bg-white p-6 text-sm font-semibold text-slate-600">No seeded listings yet. This county page is ready for local content and internal links.</p>}
         </div>
+      </section>
+      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <PublicDataFacts
+          title={`${county.name} official data snapshot`}
+          description="County pages use a local generated cache for Census, parcel, flood-map, and official-contact context so LRPR is more than a duplicate listing directory."
+          facts={publicDataFacts}
+          generatedAt={getPublicDataGeneratedAt()}
+        />
       </section>
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <DatasetSourcePanel title={`Datasets that can enrich ${county.name}`} sources={countyDatasets} />

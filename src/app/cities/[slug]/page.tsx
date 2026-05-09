@@ -3,8 +3,10 @@ import { DatasetSourcePanel } from "@/components/DatasetSourcePanel";
 import { Header } from "@/components/Header";
 import { InternalLinkHub } from "@/components/InternalLinkHub";
 import { ListingCard } from "@/components/ListingCard";
+import { PublicDataFacts } from "@/components/PublicDataFacts";
 import { getDatasetsForCity } from "@/data/datasets";
 import { cities, getListingsByCity, slugify } from "@/data/site";
+import { getCityPublicDataFacts, getPublicDataGeneratedAt } from "@/lib/public-data-enrichment";
 
 export function generateStaticParams() {
   return cities.map((city) => ({ slug: city.slug }));
@@ -26,6 +28,7 @@ export default async function CityPage({ params }: { params: Promise<{ slug: str
   if (!city) notFound();
   const cityListings = getListingsByCity(city.name);
   const cityDatasets = getDatasetsForCity(city.name);
+  const publicDataFacts = getCityPublicDataFacts(city.slug);
 
   return (
     <main className="min-h-screen bg-[#f7f3eb] text-slate-950">
@@ -49,6 +52,14 @@ export default async function CityPage({ params }: { params: Promise<{ slug: str
         <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {cityListings.length > 0 ? cityListings.map((listing) => <ListingCard listing={listing} key={listing.id} />) : <p className="rounded-3xl bg-white p-6 text-sm font-semibold text-slate-600">No seeded listings yet. This city page is ready for real listings and local dataset enrichment.</p>}
         </div>
+      </section>
+      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <PublicDataFacts
+          title={`${city.name} official data snapshot`}
+          description="These are page-ready facts generated from the local public-data cache. They are meant to make each LRPR city hub genuinely useful without copying real-estate portal feeds."
+          facts={publicDataFacts}
+          generatedAt={getPublicDataGeneratedAt()}
+        />
       </section>
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <DatasetSourcePanel title={`Datasets that can make ${city.name} pages unique`} sources={cityDatasets} />
