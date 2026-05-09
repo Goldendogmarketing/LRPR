@@ -13,9 +13,20 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Lake Region Property Resource",
+  metadataBase: new URL("https://lakeregionpropertyresource.com"),
+  title: {
+    default: "Lake Region Property Resource",
+    template: "%s | Lake Region Property Resource",
+  },
   description:
     "A local hub for Lake Region listings, rentals, resources, and trusted real-estate service providers.",
+  openGraph: {
+    title: "Lake Region Property Resource",
+    description:
+      "Find Lake Region homes, rentals, resources, service providers, city hubs, and county property information.",
+    type: "website",
+    locale: "en_US",
+  },
 };
 
 export default function RootLayout({
