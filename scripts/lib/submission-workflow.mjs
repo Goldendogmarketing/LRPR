@@ -41,3 +41,35 @@ export function roleCan(roleId, permission) {
   const role = adminRoles.find((candidate) => candidate.id === roleId);
   return Boolean(role?.permissions.includes(permission));
 }
+
+export function applyAdminDecision(submission, decision, reviewerRole = "reviewer") {
+  if (!roleCan(reviewerRole, "approve")) {
+    return { ok: false, error: "reviewer is not allowed to make approval decisions", submission };
+  }
+
+  if (decision === "approved") {
+    return {
+      ok: true,
+      error: null,
+      submission: { ...submission, status: "approved", adminApproved: true, reviewedAt: new Date(0).toISOString() },
+    };
+  }
+
+  if (decision === "changes_requested") {
+    return {
+      ok: true,
+      error: null,
+      submission: { ...submission, status: "changes_requested", adminApproved: false, reviewedAt: new Date(0).toISOString() },
+    };
+  }
+
+  if (decision === "rejected") {
+    return {
+      ok: true,
+      error: null,
+      submission: { ...submission, status: "rejected", adminApproved: false, reviewedAt: new Date(0).toISOString() },
+    };
+  }
+
+  return { ok: false, error: "unsupported admin decision", submission };
+}

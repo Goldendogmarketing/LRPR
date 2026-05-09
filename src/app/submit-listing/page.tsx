@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Header } from "@/components/Header";
+import { submitListingAction } from "./actions";
 
 const sourceTypes = [
   ["Owner submitted", "For owners who want to submit a sale, rental, land, or archived/historical property record."],
@@ -38,7 +39,17 @@ export const metadata = {
   description: "Submit an owner, agent, or property-manager listing for Lake Region Property Resource review.",
 };
 
-export default function SubmitListingPage() {
+type SubmitListingPageProps = {
+  searchParams?: Promise<{ submitted?: string; status?: string; checkout?: string; error?: string }>;
+};
+
+export default async function SubmitListingPage({ searchParams }: SubmitListingPageProps) {
+  const params = await searchParams;
+  const submittedId = params?.submitted;
+  const error = params?.error;
+  const status = params?.status;
+  const checkout = params?.checkout;
+
   return (
     <main className="min-h-screen bg-[#f7f4ed] text-slate-950">
       <Header />
@@ -58,7 +69,15 @@ export default function SubmitListingPage() {
           <Link href="/data-sources" className="mt-8 inline-flex rounded-full bg-white px-5 py-3 text-sm font-black text-slate-950">See public data layer →</Link>
         </div>
 
-        <form className="rounded-[2.5rem] bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.08)] ring-1 ring-slate-200 sm:p-7">
+        <form action={submitListingAction} className="rounded-[2.5rem] bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.08)] ring-1 ring-slate-200 sm:p-7">
+          {submittedId ? (
+            <div className="mb-5 rounded-3xl bg-emerald-50 p-4 text-sm font-bold leading-6 text-emerald-950 ring-1 ring-emerald-100">
+              Draft saved locally as <span className="font-black">{submittedId}</span>. Current status: <span className="font-black">{status}</span>. Checkout: <span className="font-black">{checkout}</span>. Next: wire this to Supabase/Clerk/Stripe when keys are available.
+            </div>
+          ) : null}
+          {error ? (
+            <div className="mb-5 rounded-3xl bg-rose-50 p-4 text-sm font-bold leading-6 text-rose-950 ring-1 ring-rose-100">{error}</div>
+          ) : null}
           <div className="mb-6">
             <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-700">Listing intake</p>
             <h2 className="mt-2 text-3xl font-black tracking-[-0.03em]">Start the review packet</h2>
@@ -66,21 +85,21 @@ export default function SubmitListingPage() {
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-              <label className="block text-sm font-black text-slate-800 sm:col-span-2">Submission type<select className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:border-cyan-700"><option>Free draft review</option><option>Standard sale listing</option><option>Featured sale listing</option><option>Rental listing</option><option>Sold / archived record</option><option>Vendor / Service Pro profile</option></select></label>
-            <label className="block text-sm font-black text-slate-800">Your name<input className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:border-cyan-700" placeholder="Full name" /></label>
-            <label className="block text-sm font-black text-slate-800">Email or phone<input className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:border-cyan-700" placeholder="Best contact" /></label>
-            <label className="block text-sm font-black text-slate-800">Submission source<select className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:border-cyan-700"><option>Owner submitted</option><option>Agent submitted</option><option>Property manager submitted</option><option>LRPR verified</option></select></label>
-            <label className="block text-sm font-black text-slate-800">Listing status<select className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:border-cyan-700"><option>Active</option><option>Pending</option><option>Sold</option><option>Archived / historical</option></select></label>
-            <label className="block text-sm font-black text-slate-800 sm:col-span-2">Property address<input className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:border-cyan-700" placeholder="Street, city, FL ZIP" /></label>
-            <label className="block text-sm font-black text-slate-800">Property type<select className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:border-cyan-700"><option>House</option><option>Lakefront</option><option>Land & acreage</option><option>Rental</option><option>Commercial</option><option>Mobile / manufactured</option></select></label>
-            <label className="block text-sm font-black text-slate-800">Price or rent<input className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:border-cyan-700" placeholder="$489,000 or $1,450/mo" /></label>
-            <label className="block text-sm font-black text-slate-800">Beds<input className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:border-cyan-700" placeholder="3" /></label>
-            <label className="block text-sm font-black text-slate-800">Baths<input className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:border-cyan-700" placeholder="2" /></label>
-            <label className="block text-sm font-black text-slate-800 sm:col-span-2">Notes<textarea className="mt-2 min-h-32 w-full rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:border-cyan-700" placeholder="Lake access, acreage, condition, lease terms, showing notes, source links, or anything LRPR should verify." /></label>
+              <label className="block text-sm font-black text-slate-800 sm:col-span-2">Submission type<select name="submissionType" className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:border-cyan-700"><option value="free-draft-review">Free draft review</option><option value="standard-sale-listing">Standard sale listing</option><option value="featured-sale-listing">Featured sale listing</option><option value="rental-listing">Rental listing</option><option value="sold-archive-record">Sold / archived record</option><option value="vendor-service-pro">Vendor / Service Pro profile</option></select></label>
+            <label className="block text-sm font-black text-slate-800">Your name<input name="contactName" className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:border-cyan-700" placeholder="Full name" /></label>
+            <label className="block text-sm font-black text-slate-800">Email or phone<input name="contactMethod" className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:border-cyan-700" placeholder="Best contact" /></label>
+            <label className="block text-sm font-black text-slate-800">Submission source<select name="sourceType" className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:border-cyan-700"><option value="owner">Owner submitted</option><option value="agent">Agent submitted</option><option value="property-manager">Property manager submitted</option><option value="lrpr-verified">LRPR verified</option></select></label>
+            <label className="block text-sm font-black text-slate-800">Listing status<select name="listingStatus" className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:border-cyan-700"><option value="active">Active</option><option value="pending">Pending</option><option value="sold">Sold</option><option value="archived">Archived / historical</option></select></label>
+            <label className="block text-sm font-black text-slate-800 sm:col-span-2">Property address<input name="propertyAddress" className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:border-cyan-700" placeholder="Street, city, FL ZIP" /></label>
+            <label className="block text-sm font-black text-slate-800">Property type<select name="propertyType" className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:border-cyan-700"><option value="house">House</option><option value="lakefront">Lakefront</option><option value="land-acreage">Land & acreage</option><option value="rental">Rental</option><option value="commercial">Commercial</option><option value="mobile-manufactured">Mobile / manufactured</option></select></label>
+            <label className="block text-sm font-black text-slate-800">Price or rent<input name="priceOrRent" className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:border-cyan-700" placeholder="$489,000 or $1,450/mo" /></label>
+            <label className="block text-sm font-black text-slate-800">Beds<input name="beds" className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:border-cyan-700" placeholder="3" /></label>
+            <label className="block text-sm font-black text-slate-800">Baths<input name="baths" className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:border-cyan-700" placeholder="2" /></label>
+            <label className="block text-sm font-black text-slate-800 sm:col-span-2">Notes<textarea name="notes" className="mt-2 min-h-32 w-full rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:border-cyan-700" placeholder="Lake access, acreage, condition, lease terms, showing notes, source links, or anything LRPR should verify." /></label>
           </div>
 
-          <button type="button" className="mt-6 w-full rounded-2xl bg-slate-950 px-5 py-4 text-sm font-black text-white shadow-lg shadow-slate-900/15">Save intake draft</button>
-          <p className="mt-3 text-center text-xs font-semibold text-slate-500">Draft UI only for now — no data is submitted until storage is connected.</p>
+          <button type="submit" className="mt-6 w-full rounded-2xl bg-slate-950 px-5 py-4 text-sm font-black text-white shadow-lg shadow-slate-900/15">Save intake draft</button>
+          <p className="mt-3 text-center text-xs font-semibold text-slate-500">Saves to local JSONL fallback now; Supabase, Clerk, Stripe, and Resend are ready to wire when keys are available.</p>
         </form>
       </section>
 

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Header } from "@/components/Header";
+import { adminDecisionAction } from "./actions";
 
 const queueItems = [
   {
@@ -55,7 +56,15 @@ export const metadata = {
   description: "Admin approval workflow scaffold for Lake Region Property Resource submissions.",
 };
 
-export default function AdminPage() {
+type AdminPageProps = {
+  searchParams?: Promise<{ decision?: string; submission?: string }>;
+};
+
+export default async function AdminPage({ searchParams }: AdminPageProps) {
+  const params = await searchParams;
+  const decision = params?.decision;
+  const submission = params?.submission;
+
   return (
     <main className="min-h-screen bg-[#f7f4ed] text-slate-950">
       <Header />
@@ -70,6 +79,11 @@ export default function AdminPage() {
         </div>
 
         <div className="mt-8 grid gap-4 md:grid-cols-4">
+          {decision && submission ? (
+            <div className="rounded-3xl bg-emerald-50 p-5 text-sm font-bold text-emerald-950 ring-1 ring-emerald-100 md:col-span-4">
+              Admin action scaffold recorded: <span className="font-black">{decision}</span> for <span className="font-black">{submission}</span>. Real version will persist this to Supabase and queue Resend updates.
+            </div>
+          ) : null}
           {workflowStats.map(([label, value, note]) => (
             <article className="rounded-3xl bg-white p-5 ring-1 ring-slate-200" key={label}>
               <p className="text-3xl font-black tracking-[-0.04em] text-slate-950">{value}</p>
@@ -104,10 +118,11 @@ export default function AdminPage() {
                         {item.gates.map((gate) => <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-600 ring-1 ring-slate-200" key={gate}>{gate}</span>)}
                       </div>
                     </div>
-                    <div className="grid min-w-44 gap-2">
-                      <button className="rounded-2xl bg-slate-950 px-4 py-3 text-sm font-black text-white">Review</button>
-                      <button className="rounded-2xl bg-white px-4 py-3 text-sm font-black text-slate-700 ring-1 ring-slate-200">Request changes</button>
-                    </div>
+                    <form action={adminDecisionAction} className="grid min-w-44 gap-2">
+                      <input type="hidden" name="submissionId" value={item.id} />
+                      <button name="decision" value="approved" className="rounded-2xl bg-slate-950 px-4 py-3 text-sm font-black text-white">Review / approve</button>
+                      <button name="decision" value="changes_requested" className="rounded-2xl bg-white px-4 py-3 text-sm font-black text-slate-700 ring-1 ring-slate-200">Request changes</button>
+                    </form>
                   </div>
                 </article>
               ))}
