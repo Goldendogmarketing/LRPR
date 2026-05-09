@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { cities, counties, listings, siteUrl } from "@/data/site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const staticRoutes = ["", "/for-sale", "/for-rent", "/resources", "/service-pros"];
+  const staticRoutes = ["", "/for-sale", "/for-rent", "/resources", "/service-pros", "/data-sources"];
   return [
     ...staticRoutes.map((route) => ({ url: `${siteUrl}${route}`, lastModified: new Date(), changeFrequency: "weekly" as const, priority: route === "" ? 1 : 0.9 })),
     ...cities.map((city) => ({ url: `${siteUrl}/cities/${city.slug}`, lastModified: new Date(), changeFrequency: "weekly" as const, priority: 0.85 })),

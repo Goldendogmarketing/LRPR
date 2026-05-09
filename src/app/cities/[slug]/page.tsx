@@ -1,8 +1,10 @@
 import { notFound } from "next/navigation";
+import { DatasetSourcePanel } from "@/components/DatasetSourcePanel";
 import { Header } from "@/components/Header";
 import { InternalLinkHub } from "@/components/InternalLinkHub";
 import { ListingCard } from "@/components/ListingCard";
-import { cities, getListingsByCity } from "@/data/site";
+import { getDatasetsForCity } from "@/data/datasets";
+import { cities, getListingsByCity, slugify } from "@/data/site";
 
 export function generateStaticParams() {
   return cities.map((city) => ({ slug: city.slug }));
@@ -23,6 +25,7 @@ export default async function CityPage({ params }: { params: Promise<{ slug: str
   const city = cities.find((item) => item.slug === slug);
   if (!city) notFound();
   const cityListings = getListingsByCity(city.name);
+  const cityDatasets = getDatasetsForCity(city.name);
 
   return (
     <main className="min-h-screen bg-[#f7f3eb] text-slate-950">
@@ -36,11 +39,19 @@ export default async function CityPage({ params }: { params: Promise<{ slug: str
           <a className="rounded-full bg-white px-4 py-2" href="/for-rent">Rentals</a>
           <a className="rounded-full bg-white px-4 py-2" href="/resources">Local resources</a>
           <a className="rounded-full bg-white px-4 py-2" href="/service-pros">Service Pros</a>
-          <a className="rounded-full bg-cyan-950 px-4 py-2 text-white" href={`/counties/${city.county.toLowerCase().replaceAll(" ", "-")}`}>{city.county}</a>
+          {city.counties.map((countyName) => (
+            <a className="rounded-full bg-cyan-950 px-4 py-2 text-white" href={`/counties/${slugify(countyName)}`} key={countyName}>{countyName}</a>
+          ))}
+        </div>
+        <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {city.localAngles.map((angle) => <div className="rounded-3xl bg-white p-5 text-sm font-bold text-slate-700 shadow-sm" key={angle}>{angle}</div>)}
         </div>
         <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {cityListings.map((listing) => <ListingCard listing={listing} key={listing.id} />)}
+          {cityListings.length > 0 ? cityListings.map((listing) => <ListingCard listing={listing} key={listing.id} />) : <p className="rounded-3xl bg-white p-6 text-sm font-semibold text-slate-600">No seeded listings yet. This city page is ready for real listings and local dataset enrichment.</p>}
         </div>
+      </section>
+      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <DatasetSourcePanel title={`Datasets that can make ${city.name} pages unique`} sources={cityDatasets} />
       </section>
       <InternalLinkHub />
     </main>

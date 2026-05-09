@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation";
+import { DatasetSourcePanel } from "@/components/DatasetSourcePanel";
 import { Header } from "@/components/Header";
 import { InternalLinkHub } from "@/components/InternalLinkHub";
 import { ListingCard } from "@/components/ListingCard";
+import { getDatasetsForCounty } from "@/data/datasets";
 import { cities, counties, getListingsByCounty } from "@/data/site";
 
 export function generateStaticParams() {
@@ -23,7 +25,8 @@ export default async function CountyPage({ params }: { params: Promise<{ slug: s
   const county = counties.find((item) => item.slug === slug);
   if (!county) notFound();
   const countyListings = getListingsByCounty(county.name);
-  const countyCities = cities.filter((city) => city.county === county.name);
+  const countyCities = cities.filter((city) => city.counties.includes(county.name));
+  const countyDatasets = getDatasetsForCounty(county.name);
 
   return (
     <main className="min-h-screen bg-[#f7f3eb] text-slate-950">
@@ -36,10 +39,14 @@ export default async function CountyPage({ params }: { params: Promise<{ slug: s
           {countyCities.map((city) => <a className="rounded-full bg-white px-4 py-2" href={`/cities/${city.slug}`} key={city.slug}>{city.name}</a>)}
           <a className="rounded-full bg-white px-4 py-2" href="/resources">County resources</a>
           <a className="rounded-full bg-white px-4 py-2" href="/service-pros">County service pros</a>
+          <a className="rounded-full bg-cyan-950 px-4 py-2 text-white" href={county.officialUrl} target="_blank" rel="noreferrer">Official county site</a>
         </div>
         <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {countyListings.length > 0 ? countyListings.map((listing) => <ListingCard listing={listing} key={listing.id} />) : <p className="rounded-3xl bg-white p-6 text-sm font-semibold text-slate-600">No seeded listings yet. This county page is ready for local content and internal links.</p>}
         </div>
+      </section>
+      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <DatasetSourcePanel title={`Datasets that can enrich ${county.name}`} sources={countyDatasets} />
       </section>
       <InternalLinkHub />
     </main>

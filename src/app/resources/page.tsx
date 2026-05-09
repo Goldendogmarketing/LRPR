@@ -20,8 +20,8 @@ export default function ResourcesPage() {
           {resources.map((resource) => <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm" id={resource.toLowerCase().replaceAll(" ", "-")} key={resource}><h2 className="text-xl font-black">{resource}</h2><p className="mt-3 text-sm leading-6 text-slate-600">Placeholder for phone numbers, official links, hours, addresses, notes, and related local pages.</p></section>)}
         </div>
         <div className="mt-10 grid gap-4 md:grid-cols-2">
-          <Link className="rounded-3xl bg-cyan-950 p-6 text-white" href={`/cities/${cities[0].slug}`}>Devils Lake resource page →</Link>
-          <Link className="rounded-3xl bg-slate-950 p-6 text-white" href={`/counties/${counties[0].slug}`}>Ramsey County property hub →</Link>
+          <Link className="rounded-3xl bg-cyan-950 p-6 text-white" href={`/cities/${cities[0].slug}`}>Keystone Heights resource page →</Link>
+          <Link className="rounded-3xl bg-slate-950 p-6 text-white" href={`/counties/${counties[0].slug}`}>Clay County property hub →</Link>
         </div>
       </section>
       <InternalLinkHub />

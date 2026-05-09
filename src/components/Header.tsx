@@ -5,8 +5,9 @@ const navItems = [
   ["For Rent", "/for-rent"],
   ["Resources", "/resources"],
   ["Service Pros", "/service-pros"],
-  ["Cities", "/cities/devils-lake"],
-  ["Counties", "/counties/ramsey-county"],
+  ["Cities", "/cities/keystone-heights"],
+  ["Counties", "/counties/clay-county"],
+  ["Data", "/data-sources"],
 ];
 
 export function Header() {
