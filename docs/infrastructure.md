@@ -59,11 +59,41 @@ A submission can publish only when:
 
 See `.env.example`. Never commit real secrets.
 
-## Next implementation steps
+## Live integration checklist
 
-1. Install/configure Clerk.
-2. Create Supabase project and run `supabase/schema.sql`.
-3. Install/configure Stripe and webhook route.
-4. Install/configure Resend and notification templates.
-5. Replace static admin dashboard with database-backed server components.
-6. Add protected route middleware for `/admin` and submission save actions.
+When the external dashboards are available, add these values to `.env.local` only:
+
+### Supabase
+
+1. Create a Supabase project.
+2. Run `supabase/schema.sql` in the SQL editor.
+3. Add `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`.
+4. First live write target: `submissions`.
+5. First live read target: admin queue filtering `pending_review`, `payment_pending`, and `changes_requested`.
+
+### Clerk
+
+1. Create Clerk app.
+2. Add `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY`.
+3. Protect `/submit-listing` after submission type selection.
+4. Protect `/admin` with admin/reviewer roles.
+
+### Stripe
+
+1. Create products/prices for standard sale, featured sale, rental, and vendor/service-pro profile.
+2. Add `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, and the `STRIPE_PRICE_*` values.
+3. Webhook should update `payments` and move paid submissions to `pending_review`.
+
+### Resend
+
+1. Verify sender domain/email.
+2. Add `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, and `ADMIN_NOTIFICATION_EMAIL`.
+3. Send admin email on `submission.created`.
+4. Send submitter email on `changes_requested`, `approved`, and `published`.
+
+### Google Maps later
+
+1. Add Maps JS key and server geocoding key.
+2. Geocode approved addresses.
+3. Save lat/lng to `published_listings`.
+4. Use public-data enrichment for flood/parcel/census context.
