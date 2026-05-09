@@ -28,6 +28,77 @@ export const listingIntakeStatuses = [
   { id: "archived", label: "Archived / historical" },
 ];
 
+export const listingSubmissionTypes = [
+  {
+    id: "free-draft-review",
+    label: "Free draft review",
+    priceLabel: "Free",
+    audience: "Owners, agents, managers",
+    description: "Submit property basics so LRPR can review fit, source, and permission before requesting payment.",
+    requiresAccount: true,
+    requiresPayment: false,
+    badge: "Account required",
+  },
+  {
+    id: "standard-sale-listing",
+    label: "Standard sale listing",
+    priceLabel: "Paid",
+    audience: "Owners and agents",
+    description: "Publish an approved home, land, lakefront, or commercial sale listing after validation.",
+    requiresAccount: true,
+    requiresPayment: true,
+    badge: "Best for active sale inventory",
+  },
+  {
+    id: "featured-sale-listing",
+    label: "Featured sale listing",
+    priceLabel: "Premium",
+    audience: "Agents, owners, builders",
+    description: "Priority homepage/category placement for approved sale listings with enhanced visibility.",
+    requiresAccount: true,
+    requiresPayment: true,
+    badge: "Sponsored placement",
+  },
+  {
+    id: "rental-listing",
+    label: "Rental listing",
+    priceLabel: "Paid",
+    audience: "Property managers and landlords",
+    description: "Publish an approved long-term, seasonal, residential, or commercial rental record.",
+    requiresAccount: true,
+    requiresPayment: true,
+    badge: "Rental lane",
+  },
+  {
+    id: "sold-archive-record",
+    label: "Sold / archived record",
+    priceLabel: "Low-cost or free",
+    audience: "Agents and local property owners",
+    description: "Add local historical context for closed, sold, or archived records when reuse rights are clear.",
+    requiresAccount: true,
+    requiresPayment: true,
+    badge: "Market context",
+  },
+  {
+    id: "vendor-service-pro",
+    label: "Vendor / Service Pro profile",
+    priceLabel: "Paid",
+    audience: "Local service businesses",
+    description: "Create a verified service-provider profile for contractors, inspectors, lenders, managers, and trades.",
+    requiresAccount: true,
+    requiresPayment: true,
+    badge: "Service marketplace",
+  },
+];
+
+export const paymentGateRequirements = [
+  "Create or sign into a validated account before saving a submission.",
+  "Verify email and basic contact identity before checkout or admin review.",
+  "Collect payment for paid submission types before public publishing eligibility.",
+  "Keep every submission in admin approval until LRPR verifies permission, facts, and source quality.",
+  "Only publish after account validation, payment status, and admin approval are all complete.",
+];
+
 export function getListingIntakeChecklist() {
   return [
     "Confirm the submitter has permission to advertise or submit this property.",

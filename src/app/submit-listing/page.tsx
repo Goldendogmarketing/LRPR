@@ -16,6 +16,23 @@ const checklist = [
   "Parcel, flood, Census, and local resource enrichment after approval",
 ];
 
+const submissionTypes = [
+  ["Free draft review", "Free", "Account required", "Submit property basics so LRPR can review fit, source, and permission before a paid publish step."],
+  ["Standard sale listing", "Paid", "Homes, land, lakefront, commercial", "Publish an approved sale listing after validation, payment, and admin approval."],
+  ["Featured sale listing", "Premium", "Homepage/category placement", "Priority visibility for approved listings with enhanced placement and local links."],
+  ["Rental listing", "Paid", "Managers and landlords", "Publish an approved long-term, seasonal, residential, or commercial rental record."],
+  ["Sold / archived record", "Low-cost or free", "Market context", "Add closed or historical records when reuse rights and facts are clear."],
+  ["Vendor / Service Pro profile", "Paid", "Service marketplace", "Verified category profile for local contractors, inspectors, lenders, trades, and managers."],
+];
+
+const paymentGateSteps = [
+  "Create or sign into a validated LRPR account",
+  "Verify email/contact identity before checkout",
+  "Choose a submission type and complete payment if required",
+  "Admin review confirms permission, source quality, photos, and facts",
+  "Only then does LRPR publish the listing, vendor profile, or archive record",
+];
+
 export const metadata = {
   title: "Submit a Lake Region Property | LRPR",
   description: "Submit an owner, agent, or property-manager listing for Lake Region Property Resource review.",
@@ -29,7 +46,7 @@ export default function SubmitListingPage() {
         <div className="rounded-[2.5rem] bg-slate-950 p-6 text-white shadow-2xl shadow-slate-900/15 sm:p-8">
           <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-200">Approved listings only</p>
           <h1 className="mt-4 text-4xl font-black tracking-[-0.04em] sm:text-6xl">Submit a Lake Region property.</h1>
-          <p className="mt-5 text-base leading-8 text-slate-200">LRPR is built for real local inventory, not scraped Zillow-style feeds. Submit property records from owners, agents, property managers, or LRPR-verified sources so every listing can be accurate, map-ready, and enriched with official public data.</p>
+          <p className="mt-5 text-base leading-8 text-slate-200">LRPR is built for real local inventory, not scraped Zillow-style feeds. Submissions should be accessible to start, then gated by a validated account, payment when required, and admin approval before anything goes public.</p>
           <div className="mt-8 grid gap-3 sm:grid-cols-2">
             {sourceTypes.map(([title, copy]) => (
               <article className="rounded-3xl bg-white/10 p-4 ring-1 ring-white/10" key={title}>
@@ -49,6 +66,7 @@ export default function SubmitListingPage() {
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
+              <label className="block text-sm font-black text-slate-800 sm:col-span-2">Submission type<select className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:border-cyan-700"><option>Free draft review</option><option>Standard sale listing</option><option>Featured sale listing</option><option>Rental listing</option><option>Sold / archived record</option><option>Vendor / Service Pro profile</option></select></label>
             <label className="block text-sm font-black text-slate-800">Your name<input className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:border-cyan-700" placeholder="Full name" /></label>
             <label className="block text-sm font-black text-slate-800">Email or phone<input className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:border-cyan-700" placeholder="Best contact" /></label>
             <label className="block text-sm font-black text-slate-800">Submission source<select className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:border-cyan-700"><option>Owner submitted</option><option>Agent submitted</option><option>Property manager submitted</option><option>LRPR verified</option></select></label>
@@ -66,8 +84,33 @@ export default function SubmitListingPage() {
         </form>
       </section>
 
+      <section className="mx-auto max-w-7xl px-4 pb-8 sm:px-6 lg:px-8">
+        <div className="rounded-[2.25rem] bg-white p-6 shadow-[0_18px_60px_rgba(15,23,42,0.06)] ring-1 ring-slate-200 sm:p-8">
+          <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-700">Submission types</p>
+              <h2 className="mt-2 text-3xl font-black tracking-[-0.03em]">Accessible to start. Account-validated before publish.</h2>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">A visitor can understand the options, but saving drafts, checkout, and publishing should require a validated account. Paid options still stay behind admin approval so LRPR controls quality.</p>
+            </div>
+            <div className="rounded-2xl bg-cyan-50 px-4 py-3 text-sm font-black text-cyan-900">Future: Clerk + Stripe + Admin queue</div>
+          </div>
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+            {submissionTypes.map(([title, price, audience, copy]) => (
+              <article className="rounded-3xl bg-[#f8faf9] p-5 ring-1 ring-slate-100" key={title}>
+                <div className="flex items-start justify-between gap-3">
+                  <h3 className="text-lg font-black text-slate-950">{title}</h3>
+                  <span className="rounded-full bg-white px-3 py-1 text-[11px] font-black uppercase text-cyan-800 shadow-sm">{price}</span>
+                </div>
+                <p className="mt-2 text-xs font-black uppercase tracking-[0.14em] text-slate-500">{audience}</p>
+                <p className="mt-3 text-sm font-semibold leading-6 text-slate-600">{copy}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="mx-auto max-w-7xl px-4 pb-14 sm:px-6 lg:px-8">
-        <div className="grid gap-6 lg:grid-cols-[1fr_0.85fr]">
+        <div className="grid gap-6 lg:grid-cols-[1fr_0.85fr] lg:items-start">
           <div className="rounded-[2rem] bg-white p-6 ring-1 ring-slate-200 sm:p-8">
             <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-700">Review checklist</p>
             <h2 className="mt-2 text-3xl font-black tracking-[-0.03em]">What LRPR verifies before publishing</h2>
@@ -76,13 +119,12 @@ export default function SubmitListingPage() {
             </div>
           </div>
           <div className="rounded-[2rem] bg-cyan-950 p-6 text-white sm:p-8">
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-200">What happens next</p>
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-200">Account + payment gate</p>
+            <h2 className="mt-2 text-2xl font-black tracking-[-0.03em]">Submission workflow</h2>
             <ol className="mt-5 space-y-4 text-sm font-semibold leading-7 text-cyan-50/85">
-              <li><strong className="text-white">1. Intake:</strong> collect source, contact, property basics, and permission.</li>
-              <li><strong className="text-white">2. Review:</strong> approve photos, facts, status, and publish-ready copy.</li>
-              <li><strong className="text-white">3. Enrich:</strong> attach geocoding, parcel source, flood lookup, Census/county context.</li>
-              <li><strong className="text-white">4. Publish:</strong> create listing page, map pin, city/county links, and vendor/resource paths.</li>
+              {paymentGateSteps.map((step, index) => <li key={step}><strong className="text-white">{index + 1}.</strong> {step}</li>)}
             </ol>
+            <div className="mt-6 rounded-2xl bg-white/10 p-4 text-sm font-semibold leading-6 text-cyan-50 ring-1 ring-white/10">Recommended stack: Clerk for validated accounts, Stripe Checkout for paid submission types, Resend for notifications, and database-backed admin approval.</div>
           </div>
         </div>
       </section>

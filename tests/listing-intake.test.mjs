@@ -2,9 +2,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
-  getListingIntakeChecklist,
   listingIntakeSourceTypes,
   listingIntakeStatuses,
+  listingSubmissionTypes,
+  paymentGateRequirements,
 } from "../scripts/lib/listing-intake.mjs";
 
 test("listing intake supports owner, agent, manager, and LRPR verified source types", () => {
@@ -19,14 +20,27 @@ test("listing intake keeps active, pending, sold, and archived status choices", 
   assert.deepEqual(statusIds, ["active", "pending", "sold", "archived"]);
 });
 
-test("listing intake checklist requires proof, permission, address, and public-data review", () => {
-  const checklist = getListingIntakeChecklist();
-  const checklistText = checklist.join(" ").toLowerCase();
+test("submission types include free draft, standard listing, featured listing, rental, sold archive, and vendor request", () => {
+  const typeIds = listingSubmissionTypes.map((type) => type.id);
 
-  assert.equal(checklist.length >= 5, true);
-  assert.match(checklistText, /permission/);
-  assert.match(checklistText, /address/);
-  assert.match(checklistText, /photo/);
-  assert.match(checklistText, /flood/);
-  assert.match(checklistText, /parcel/);
+  assert.deepEqual(typeIds, [
+    "free-draft-review",
+    "standard-sale-listing",
+    "featured-sale-listing",
+    "rental-listing",
+    "sold-archive-record",
+    "vendor-service-pro",
+  ]);
+  assert.equal(listingSubmissionTypes.every((type) => typeof type.requiresAccount === "boolean"), true);
+  assert.equal(listingSubmissionTypes.filter((type) => type.requiresPayment).length >= 4, true);
+});
+
+test("payment gate requires validated account, payment, and admin approval before publish", () => {
+  const gateText = paymentGateRequirements.join(" ").toLowerCase();
+
+  assert.match(gateText, /account/);
+  assert.match(gateText, /email/);
+  assert.match(gateText, /payment/);
+  assert.match(gateText, /admin approval/);
+  assert.match(gateText, /publish/);
 });
