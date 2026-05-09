@@ -160,6 +160,7 @@ export default function Home() {
             <p className="mt-2 text-sm text-slate-600">Demo records shown for design; real inventory will be owner, agent, manager, or LRPR verified.</p>
           </div>
           <Link href="/for-sale" className="hidden text-sm font-black text-cyan-800 sm:block">View all listings →</Link>
+          <Link href="/submit-listing" className="hidden rounded-full bg-slate-950 px-4 py-2 text-sm font-black text-white sm:block">Submit listing</Link>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {listings.slice(0, 4).map((listing, index) => <MiniListingCard index={index} listing={listing} key={listing.id} />)}

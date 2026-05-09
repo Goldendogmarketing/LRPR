@@ -8,6 +8,7 @@ const navItems = [
   ["Cities", "/cities/keystone-heights"],
   ["Counties", "/counties/clay-county"],
   ["Data", "/data-sources"],
+  ["Submit", "/submit-listing"],
 ];
 
 export function Header() {
