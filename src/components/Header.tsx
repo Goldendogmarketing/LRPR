@@ -9,6 +9,7 @@ const navItems = [
   ["Counties", "/counties/clay-county"],
   ["Data", "/data-sources"],
   ["Submit", "/submit-listing"],
+  ["Admin", "/admin"],
 ];
 
 export function Header() {
