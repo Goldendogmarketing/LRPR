@@ -1,17 +1,8 @@
 import Link from "next/link";
 import { Header } from "@/components/Header";
+import { HomeMap } from "@/components/HomeMap";
 import { InternalLinkHub } from "@/components/InternalLinkHub";
 import { listings, resources } from "@/data/site";
-
-const mapPins = [
-  { label: "$489K", className: "left-[34%] top-[31%] bg-cyan-700" },
-  { label: "$249K", className: "left-[57%] top-[23%] bg-cyan-700" },
-  { label: "$172K", className: "left-[48%] top-[47%] bg-emerald-600" },
-  { label: "$1.4K/mo", className: "left-[67%] top-[62%] bg-emerald-600" },
-  { label: "$1.2K/mo", className: "left-[42%] top-[70%] bg-emerald-600" },
-  { label: "Lakefront", className: "left-[20%] top-[54%] bg-slate-900" },
-  { label: "Land", className: "left-[72%] top-[35%] bg-slate-900" },
-];
 
 const quickFilters = [
   ["Lakefront Homes", "Lake Geneva, Lake Santa Fe, Brooklyn Lake", "/for-sale"],
@@ -126,28 +117,7 @@ export default function Home() {
               </div>
             </aside>
 
-            <div className="relative min-h-[620px] overflow-hidden bg-[#dfeee5]">
-              <div className="absolute inset-0 opacity-90 [background-image:linear-gradient(25deg,rgba(34,197,94,0.16)_12%,transparent_12%,transparent_45%,rgba(14,165,233,0.14)_45%,rgba(14,165,233,0.14)_53%,transparent_53%),linear-gradient(115deg,transparent_0_20%,rgba(255,255,255,0.55)_20%_22%,transparent_22%_50%,rgba(255,255,255,0.45)_50%_52%,transparent_52%),linear-gradient(90deg,rgba(15,23,42,0.10)_1px,transparent_1px),linear-gradient(0deg,rgba(15,23,42,0.10)_1px,transparent_1px)] [background-size:100%_100%,100%_100%,72px_72px,72px_72px]" />
-              <div className="absolute left-[13%] top-[18%] text-xs font-black text-emerald-900/45">Keystone Heights</div>
-              <div className="absolute right-[17%] top-[18%] text-xs font-black text-emerald-900/45">Starke</div>
-              <div className="absolute left-[43%] top-[44%] text-3xl font-black tracking-tight text-slate-950/75">Lake Region</div>
-              <div className="absolute left-[44%] top-[50%] text-sm font-black uppercase tracking-[0.22em] text-slate-700/60">Florida</div>
-              <div className="absolute bottom-[21%] left-[25%] text-xs font-black text-emerald-900/45">Melrose</div>
-              <div className="absolute bottom-[19%] right-[23%] text-xs font-black text-emerald-900/45">Interlachen</div>
-
-              <div className="absolute left-8 top-6 flex gap-3">
-                <button className="rounded-full bg-white px-4 py-2 text-sm font-black text-slate-800 shadow-sm">✎ Draw Search</button>
-                <button className="rounded-full bg-white px-4 py-2 text-sm font-black text-slate-800 shadow-sm">Map ▾</button>
-              </div>
-              <div className="absolute bottom-6 right-6 overflow-hidden rounded-2xl bg-white shadow-lg">
-                <button className="grid h-11 w-11 place-items-center border-b border-slate-200 text-xl font-black">+</button>
-                <button className="grid h-11 w-11 place-items-center text-xl font-black">−</button>
-              </div>
-
-              {mapPins.map((pin) => (
-                <Link href="/for-sale" className={`absolute rounded-full px-3 py-1.5 text-xs font-black text-white shadow-[0_10px_25px_rgba(15,23,42,0.25)] ${pin.className}`} key={pin.label}>{pin.label}</Link>
-              ))}
-            </div>
+            <HomeMap listings={listings} />
           </div>
         </div>
       </section>
