@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { currentUser } from "@clerk/nextjs/server";
 import { Header } from "@/components/Header";
 import {
   createSupabaseServerClient,
@@ -69,6 +70,73 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   const decision = params?.decision;
   const submission = params?.submission;
   const status = params?.status;
+
+  // Clerk middleware has already enforced "signed in." This page additionally
+  // enforces "is admin" — we look at Clerk publicMetadata.role.
+  // To grant admin: Clerk Dashboard → Users → click user → Public Metadata
+  //   → set { "role": "admin" } → Save.
+  const user = await currentUser();
+  const role = user?.publicMetadata?.role;
+  if (role !== "admin") {
+    return (
+      <main className="min-h-screen bg-[#f7f4ed] text-slate-950">
+        <Header />
+        <section className="mx-auto grid max-w-3xl gap-6 px-4 py-24 sm:px-6 lg:px-8">
+          <div className="rounded-[2rem] bg-white p-8 ring-1 ring-slate-200">
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-rose-600">
+              Admin access required
+            </p>
+            <h1 className="mt-3 text-3xl font-black tracking-[-0.03em]">
+              You&apos;re signed in, but not as an admin.
+            </h1>
+            <p className="mt-4 text-sm leading-7 text-slate-600">
+              You&apos;re signed in as{" "}
+              <span className="font-black text-slate-900">
+                {user?.emailAddresses[0]?.emailAddress ?? "unknown"}
+              </span>
+              . The LRPR admin queue is restricted to users with the{" "}
+              <code className="rounded bg-slate-100 px-2 py-0.5 font-mono text-xs">
+                admin
+              </code>{" "}
+              role.
+            </p>
+            <div className="mt-6 rounded-2xl bg-slate-50 p-4 text-sm leading-6 text-slate-700 ring-1 ring-slate-200">
+              <p className="font-black text-slate-900">
+                Owner / first-time setup:
+              </p>
+              <ol className="ml-4 mt-2 list-decimal space-y-1">
+                <li>
+                  Open the{" "}
+                  <a
+                    className="font-black text-cyan-800 underline"
+                    href="https://dashboard.clerk.com"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Clerk Dashboard
+                  </a>
+                </li>
+                <li>Navigate to Users → click your user</li>
+                <li>
+                  Set <strong>Public Metadata</strong> to{" "}
+                  <code className="rounded bg-white px-2 py-0.5 font-mono text-xs ring-1 ring-slate-200">
+                    {`{ "role": "admin" }`}
+                  </code>
+                </li>
+                <li>Save, then refresh this page</li>
+              </ol>
+            </div>
+            <Link
+              href="/"
+              className="mt-6 inline-block rounded-full bg-slate-950 px-5 py-3 text-sm font-black text-white"
+            >
+              Back to home
+            </Link>
+          </div>
+        </section>
+      </main>
+    );
+  }
 
   const supabase = createSupabaseServerClient();
   const { data: rows, error } = await supabase

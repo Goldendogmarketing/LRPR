@@ -1,5 +1,6 @@
 "use server";
 
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import {
   buildAdminNotification,
@@ -7,7 +8,10 @@ import {
   createSubmissionRecord,
   formDataToSubmissionInput,
 } from "@/lib/submission-pipeline";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import {
+  createSupabaseServerClient,
+  getOrCreateProfile,
+} from "@/lib/supabase/server";
 
 function toNumberOrNull(value: string): number | null {
   if (!value) return null;
@@ -16,8 +20,20 @@ function toNumberOrNull(value: string): number | null {
 }
 
 export async function submitListingAction(formData: FormData) {
+  // Defense in depth: middleware should have redirected unauthenticated users
+  // away from /submit-listing already, but server actions can be invoked
+  // independently — re-check here.
+  const { userId } = await auth();
+  if (!userId) {
+    redirect("/sign-in?redirect_url=/submit-listing");
+  }
+
   const payload = formDataToSubmissionInput(formData);
-  const result = createSubmissionRecord(payload);
+  const result = createSubmissionRecord({
+    ...payload,
+    // Trust Clerk's authentication as the "account_validated" gate signal.
+    accountValidated: true,
+  });
 
   if (!result.ok) {
     redirect(
@@ -29,27 +45,38 @@ export async function submitListingAction(formData: FormData) {
   const checkout = buildCheckoutIntent(record);
   const notification = buildAdminNotification(record);
 
-  // Persist to Supabase. We let Postgres generate the id (gen_random_uuid),
-  // and we map the in-memory record to the DB column shape.
+  // Resolve the Clerk user → Supabase profile so we can link the submission.
+  const user = await currentUser();
+  const primaryEmail =
+    user?.emailAddresses.find((e) => e.id === user.primaryEmailAddressId)
+      ?.emailAddress ?? user?.emailAddresses[0]?.emailAddress ?? "unknown@lrpr.local";
+  const fullName =
+    [user?.firstName, user?.lastName].filter(Boolean).join(" ") || null;
+
   const supabase = createSupabaseServerClient();
+  const profile = await getOrCreateProfile(supabase, {
+    clerkUserId: userId,
+    email: primaryEmail,
+    fullName,
+  });
+
   const { data, error } = await supabase
     .from("submissions")
     .insert({
+      submitter_profile_id: profile.id,
       submission_type: record.submissionType,
       status: record.status,
       source_type: record.sourceType,
       listing_status: record.listingStatus,
       property_type: record.propertyType,
-      contact_name: record.contactName,
-      // The form has a single "contactMethod" field — dump into email for now.
-      // When we split email/phone in the form (or add Clerk profile), refine this.
-      contact_email: record.contactMethod,
+      contact_name: record.contactName || fullName,
+      contact_email: record.contactMethod || primaryEmail,
       address_line: record.propertyAddress,
       price_or_rent: record.priceOrRent,
       beds: toNumberOrNull(record.beds),
       baths: toNumberOrNull(record.baths),
       notes: record.notes,
-      account_validated: record.accountValidated,
+      account_validated: true,
       payment_required: record.paymentRequired,
       payment_complete: record.paymentComplete,
       admin_approved: record.adminApproved,
@@ -70,6 +97,8 @@ export async function submitListingAction(formData: FormData) {
   console.info("LRPR submission persisted", {
     submissionId: data.id,
     status: data.status,
+    profileId: profile.id,
+    clerkUserId: userId,
     notificationTo: notification.to,
     checkoutStatus: checkout.status,
   });
