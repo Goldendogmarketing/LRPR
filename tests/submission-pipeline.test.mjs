@@ -14,27 +14,29 @@ import {
 } from "../scripts/lib/submission-pipeline.mjs";
 
 const validInput = {
-  submissionType: "standard-sale-listing",
+  submissionType: "residential-sale",
   contactName: "Jordan Owner",
   contactMethod: "jordan@example.com",
   sourceType: "owner",
   listingStatus: "active",
   propertyAddress: "123 Lake Region Rd, Keystone Heights, FL",
-  propertyType: "lakefront",
+  propertyType: "residential",
   priceOrRent: "$489,000",
   accountValidated: true,
 };
 
-test("normalizeSubmissionPayload assigns payment policy by submission type", () => {
-  const standard = normalizeSubmissionPayload(validInput);
-  const free = normalizeSubmissionPayload({ ...validInput, submissionType: "free-draft-review" });
+test("normalizeSubmissionPayload assigns no checkout policy for public MVP listing types", () => {
+  const residential = normalizeSubmissionPayload(validInput);
+  const land = normalizeSubmissionPayload({ ...validInput, submissionType: "land-listing", propertyType: "land-acreage" });
+  const rental = normalizeSubmissionPayload({ ...validInput, submissionType: "rental-listing", propertyType: "rental" });
 
-  assert.equal(standard.paymentRequired, true);
-  assert.equal(free.paymentRequired, false);
+  assert.equal(residential.paymentRequired, false);
+  assert.equal(land.paymentRequired, false);
+  assert.equal(rental.paymentRequired, false);
 });
 
 test("validateSubmissionPayload requires core intake fields", () => {
-  const invalid = normalizeSubmissionPayload({ submissionType: "standard-sale-listing" });
+  const invalid = normalizeSubmissionPayload({ submissionType: "residential-sale" });
   const validation = validateSubmissionPayload(invalid);
 
   assert.equal(validation.ok, false);
@@ -42,48 +44,48 @@ test("validateSubmissionPayload requires core intake fields", () => {
   assert.match(validation.errors.join(" "), /propertyAddress/);
 });
 
-test("createSubmissionRecord moves valid paid submissions to payment_pending until payment completes", () => {
+test("createSubmissionRecord moves validated property submissions to pending_review", () => {
   const result = createSubmissionRecord(validInput, new Date("2026-05-09T20:00:00.000Z"));
 
   assert.equal(result.ok, true);
-  assert.equal(result.record.status, "payment_pending");
+  assert.equal(result.record.status, "pending_review");
   assert.equal(result.record.id, "lrpr_1778356800000");
 });
 
-test("createSubmissionRecord moves free validated submissions to pending_review", () => {
-  const result = createSubmissionRecord({ ...validInput, submissionType: "free-draft-review" });
+test("createSubmissionRecord blocks unvalidated accounts before review", () => {
+  const result = createSubmissionRecord({ ...validInput, accountValidated: false });
 
   assert.equal(result.ok, true);
-  assert.equal(result.record.status, "pending_review");
+  assert.equal(result.record.status, "account_pending");
 });
 
-test("buildCheckoutIntent reports missing Stripe price ids before live config", () => {
+test("buildCheckoutIntent reports no checkout for public property submission MVP", () => {
   const record = createSubmissionRecord(validInput).record;
   const intent = buildCheckoutIntent(record, {});
 
-  assert.equal(intent.required, true);
-  assert.equal(intent.status, "missing_price_id");
-  assert.equal(intent.priceEnvKey, "STRIPE_STANDARD_LISTING_PRICE_ID");
+  assert.equal(intent.required, false);
+  assert.equal(intent.status, "not_required");
+  assert.equal(intent.priceEnvKey, null);
 });
 
-test("buildAdminNotification creates a submission.created payload", () => {
-  const record = createSubmissionRecord({ ...validInput, paymentComplete: true }).record;
+test("buildAdminNotification creates a property_submission.created payload", () => {
+  const record = createSubmissionRecord(validInput).record;
   const notification = buildAdminNotification(record);
 
-  assert.equal(notification.templateKey, "submission.created");
-  assert.match(notification.subject, /New LRPR submission/);
+  assert.equal(notification.templateKey, "property_submission.created");
+  assert.match(notification.subject, /New LRPR property submission/);
   assert.equal(notification.payload.submissionId, record.id);
 });
 
 test("appendLocalSubmission writes jsonl fallback storage", async () => {
   const dir = await mkdtemp(path.join(tmpdir(), "lrpr-submissions-"));
   const filePath = path.join(dir, "submissions.jsonl");
-  const record = createSubmissionRecord({ ...validInput, submissionType: "free-draft-review" }).record;
+  const record = createSubmissionRecord(validInput).record;
 
   await appendLocalSubmission(record, { filePath });
   const content = await readFile(filePath, "utf8");
 
-  assert.match(content, /free-draft-review/);
+  assert.match(content, /residential-sale/);
   assert.match(content, new RegExp(record.id));
 
   await rm(dir, { recursive: true, force: true });

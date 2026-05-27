@@ -1,3 +1,38 @@
+export const publicListingSubmissionTypes = [
+  {
+    id: "residential-sale",
+    label: "Residential property for sale",
+    priceLabel: "Admin reviewed",
+    audience: "Owners and licensed agents",
+    description: "Submit a home for sale in the Florida Lake Region. LRPR verifies permission, facts, photos, and local context before anything publishes.",
+    requiresAccount: true,
+    requiresPayment: false,
+    adminManaged: false,
+  },
+  {
+    id: "land-listing",
+    label: "Land / lot listing",
+    priceLabel: "Admin reviewed",
+    audience: "Owners, agents, and land sellers",
+    description: "Submit acreage, vacant land, lake-area lots, or rural build sites with parcel and county context queued for review.",
+    requiresAccount: true,
+    requiresPayment: false,
+    adminManaged: false,
+  },
+  {
+    id: "rental-listing",
+    label: "Rental listing",
+    priceLabel: "Admin reviewed",
+    audience: "Landlords and property managers",
+    description: "Submit a residential rental packet for LRPR review, including lease terms, availability, photos, and manager/owner permission.",
+    requiresAccount: true,
+    requiresPayment: false,
+    adminManaged: false,
+  },
+];
+
+export const listingSubmissionTypes = publicListingSubmissionTypes;
+
 export const listingIntakeSourceTypes = [
   {
     id: "owner",
@@ -12,100 +47,52 @@ export const listingIntakeSourceTypes = [
   {
     id: "property-manager",
     label: "Property manager submitted",
-    description: "A rental or property manager submits an available rental, lease, or managed property.",
-  },
-  {
-    id: "lrpr-verified",
-    label: "LRPR verified",
-    description: "LRPR staff manually verifies and approves the record before publishing.",
+    description: "A rental or property manager submits an available residential rental or managed property.",
   },
 ];
 
 export const listingIntakeStatuses = [
   { id: "active", label: "Active" },
-  { id: "pending", label: "Pending" },
-  { id: "sold", label: "Sold" },
-  { id: "archived", label: "Archived / historical" },
+  { id: "pending", label: "Pending / coming soon" },
 ];
 
-export const listingSubmissionTypes = [
+export const adminManagedContentTypes = [
   {
-    id: "free-draft-review",
-    label: "Free draft review",
-    priceLabel: "Free",
-    audience: "Owners, agents, managers",
-    description: "Submit property basics so LRPR can review fit, source, and permission before requesting payment.",
-    requiresAccount: true,
+    id: "service-provider-profile",
+    label: "Service provider profile",
+    owner: "admin",
+    requiresPayment: true,
+    requiresApproval: true,
+    publicSubmission: false,
+    description: "LRPR admin creates/updates paid service-provider profiles after payment and admin approval.",
+  },
+  {
+    id: "local-resource",
+    label: "Local resource",
+    owner: "admin",
     requiresPayment: false,
-    badge: "Account required",
-  },
-  {
-    id: "standard-sale-listing",
-    label: "Standard sale listing",
-    priceLabel: "Paid",
-    audience: "Owners and agents",
-    description: "Publish an approved home, land, lakefront, or commercial sale listing after validation.",
-    requiresAccount: true,
-    requiresPayment: true,
-    badge: "Best for active sale inventory",
-  },
-  {
-    id: "featured-sale-listing",
-    label: "Featured sale listing",
-    priceLabel: "Premium",
-    audience: "Agents, owners, builders",
-    description: "Priority homepage/category placement for approved sale listings with enhanced visibility.",
-    requiresAccount: true,
-    requiresPayment: true,
-    badge: "Sponsored placement",
-  },
-  {
-    id: "rental-listing",
-    label: "Rental listing",
-    priceLabel: "Paid",
-    audience: "Property managers and landlords",
-    description: "Publish an approved long-term, seasonal, residential, or commercial rental record.",
-    requiresAccount: true,
-    requiresPayment: true,
-    badge: "Rental lane",
-  },
-  {
-    id: "sold-archive-record",
-    label: "Sold / archived record",
-    priceLabel: "Low-cost or free",
-    audience: "Agents and local property owners",
-    description: "Add local historical context for closed, sold, or archived records when reuse rights are clear.",
-    requiresAccount: true,
-    requiresPayment: true,
-    badge: "Market context",
-  },
-  {
-    id: "vendor-service-pro",
-    label: "Vendor / Service Pro profile",
-    priceLabel: "Paid",
-    audience: "Local service businesses",
-    description: "Create a verified service-provider profile for contractors, inspectors, lenders, managers, and trades.",
-    requiresAccount: true,
-    requiresPayment: true,
-    badge: "Service marketplace",
+    requiresApproval: true,
+    publicSubmission: false,
+    description: "LRPR admin adds city, county, utility, permit, school, park, lake, and official data resources directly.",
   },
 ];
 
 export const paymentGateRequirements = [
-  "Create or sign into a validated account before saving a submission.",
-  "Verify email and basic contact identity before checkout or admin review.",
-  "Collect payment for paid submission types before public publishing eligibility.",
-  "Keep every submission in admin approval until LRPR verifies permission, facts, and source quality.",
-  "Only publish after account validation, payment status, and admin approval are all complete.",
+  "Public property submissions require a validated account before saving or review.",
+  "Residential sale, land, and rental submissions remain private until LRPR admin review is complete.",
+  "Service-provider profiles are admin-uploaded, paid placements and require admin approval before publish.",
+  "Local resources are admin-added data records, not public submissions.",
+  "Nothing publishes until permission, source quality, and admin approval gates are satisfied.",
 ];
 
 export function getListingIntakeChecklist() {
   return [
     "Confirm the submitter has permission to advertise or submit this property.",
     "Collect the full street address, city, county, state, ZIP, and listing status.",
+    "Classify the request as residential sale, land/lot, or rental.",
     "Require original or authorized listing photos before publishing.",
     "Attach parcel-source context from the relevant county or Florida cadastral fallback.",
     "Attach FEMA flood-map lookup status when coordinates or parcel geometry are available.",
-    "Review contact details, asking price/rent, property type, beds, baths, acreage, and disclosure notes.",
+    "Review contact details, asking price/rent, beds, baths, acreage, lease terms, and disclosure notes.",
   ];
 }

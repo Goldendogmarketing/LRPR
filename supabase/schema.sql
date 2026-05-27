@@ -5,12 +5,9 @@
 create extension if not exists pgcrypto;
 
 create type submission_type as enum (
-  'free-draft-review',
-  'standard-sale-listing',
-  'featured-sale-listing',
-  'rental-listing',
-  'sold-archive-record',
-  'vendor-service-pro'
+  'residential-sale',
+  'land-listing',
+  'rental-listing'
 );
 
 create type submission_status as enum (
@@ -120,7 +117,6 @@ create table if not exists published_listings (
 
 create table if not exists service_provider_profiles (
   id uuid primary key default gen_random_uuid(),
-  submission_id uuid unique references submissions(id) on delete set null,
   business_name text not null,
   category text not null,
   city text,
@@ -128,9 +124,27 @@ create table if not exists service_provider_profiles (
   contact_email text,
   contact_phone text,
   website_url text,
+  payment_required boolean not null default true,
+  payment_complete boolean not null default false,
+  admin_approved boolean not null default false,
   verified boolean not null default false,
   sponsored boolean not null default false,
   published_at timestamptz,
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists local_resources (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  resource_type text not null,
+  city text,
+  county text,
+  official_url text,
+  source_name text,
+  notes text,
+  admin_approved boolean not null default false,
+  published_at timestamptz,
+  created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
@@ -150,6 +164,8 @@ create index if not exists submissions_type_idx on submissions(submission_type);
 create index if not exists submissions_city_county_idx on submissions(city, county);
 create index if not exists submission_events_submission_idx on submission_events(submission_id, created_at desc);
 create index if not exists notification_outbox_status_idx on notification_outbox(status, created_at);
+create index if not exists service_provider_profiles_category_idx on service_provider_profiles(category, city, county);
+create index if not exists local_resources_type_idx on local_resources(resource_type, city, county);
 
 -- Publish eligibility view for admin queue.
 create or replace view submission_publish_gates as

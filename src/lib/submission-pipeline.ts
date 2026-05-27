@@ -1,4 +1,4 @@
-export type SubmissionTypeId = "free-draft-review" | "standard-sale-listing" | "featured-sale-listing" | "rental-listing" | "sold-archive-record" | "vendor-service-pro";
+export type SubmissionTypeId = "residential-sale" | "land-listing" | "rental-listing";
 
 export type SubmissionRecord = {
   id: string;
@@ -28,12 +28,9 @@ type SubmissionInput = Record<string, FormDataEntryValue | string | boolean | un
 const requiredFields = ["submissionType", "contactName", "contactMethod", "sourceType", "propertyAddress", "propertyType"];
 
 export const submissionTypePaymentPolicy: Record<SubmissionTypeId, { requiresPayment: boolean; priceEnvKey: string | null }> = {
-  "free-draft-review": { requiresPayment: false, priceEnvKey: null },
-  "standard-sale-listing": { requiresPayment: true, priceEnvKey: "STRIPE_STANDARD_LISTING_PRICE_ID" },
-  "featured-sale-listing": { requiresPayment: true, priceEnvKey: "STRIPE_FEATURED_LISTING_PRICE_ID" },
-  "rental-listing": { requiresPayment: true, priceEnvKey: "STRIPE_RENTAL_LISTING_PRICE_ID" },
-  "sold-archive-record": { requiresPayment: true, priceEnvKey: "STRIPE_ARCHIVE_RECORD_PRICE_ID" },
-  "vendor-service-pro": { requiresPayment: true, priceEnvKey: "STRIPE_VENDOR_PROFILE_PRICE_ID" },
+  "residential-sale": { requiresPayment: false, priceEnvKey: null },
+  "land-listing": { requiresPayment: false, priceEnvKey: null },
+  "rental-listing": { requiresPayment: false, priceEnvKey: null },
 };
 
 function isSubmissionType(value: string): value is SubmissionTypeId {
@@ -58,8 +55,8 @@ export function formDataToSubmissionInput(formData: FormData): SubmissionInput {
 
 export function normalizeSubmissionPayload(input: SubmissionInput) {
   const get = (key: string) => String(input?.[key] ?? "").trim();
-  const rawSubmissionType = get("submissionType") || "free-draft-review";
-  const submissionType = isSubmissionType(rawSubmissionType) ? rawSubmissionType : "free-draft-review";
+  const rawSubmissionType = get("submissionType") || "residential-sale";
+  const submissionType = isSubmissionType(rawSubmissionType) ? rawSubmissionType : "residential-sale";
   const paymentPolicy = submissionTypePaymentPolicy[submissionType];
 
   return {
@@ -69,7 +66,7 @@ export function normalizeSubmissionPayload(input: SubmissionInput) {
     sourceType: get("sourceType") || "owner",
     listingStatus: get("listingStatus") || "active",
     propertyAddress: get("propertyAddress"),
-    propertyType: get("propertyType") || "house",
+    propertyType: get("propertyType") || (submissionType === "land-listing" ? "land-acreage" : "residential"),
     priceOrRent: get("priceOrRent"),
     beds: get("beds"),
     baths: get("baths"),
@@ -132,9 +129,9 @@ export function buildCheckoutIntent(record: SubmissionRecord, env: Record<string
 export function buildAdminNotification(record: SubmissionRecord) {
   return {
     to: process.env.LRPR_ADMIN_EMAIL || "admin@lrpr.local",
-    subject: `New LRPR submission: ${record.submissionType}`,
+    subject: `New LRPR property submission: ${record.submissionType}`,
     preview: `${record.contactName} submitted ${record.propertyAddress || record.propertyType} for ${record.status}.`,
-    templateKey: "submission.created",
+    templateKey: "property_submission.created",
     payload: {
       submissionId: record.id,
       submissionType: record.submissionType,

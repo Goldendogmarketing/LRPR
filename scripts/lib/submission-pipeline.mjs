@@ -4,28 +4,25 @@ import path from "node:path";
 const REQUIRED_FIELDS = ["submissionType", "contactName", "contactMethod", "sourceType", "propertyAddress", "propertyType"];
 
 export const submissionTypePaymentPolicy = {
-  "free-draft-review": { requiresPayment: false, priceEnvKey: null },
-  "standard-sale-listing": { requiresPayment: true, priceEnvKey: "STRIPE_STANDARD_LISTING_PRICE_ID" },
-  "featured-sale-listing": { requiresPayment: true, priceEnvKey: "STRIPE_FEATURED_LISTING_PRICE_ID" },
-  "rental-listing": { requiresPayment: true, priceEnvKey: "STRIPE_RENTAL_LISTING_PRICE_ID" },
-  "sold-archive-record": { requiresPayment: true, priceEnvKey: "STRIPE_ARCHIVE_RECORD_PRICE_ID" },
-  "vendor-service-pro": { requiresPayment: true, priceEnvKey: "STRIPE_VENDOR_PROFILE_PRICE_ID" },
+  "residential-sale": { requiresPayment: false, priceEnvKey: null },
+  "land-listing": { requiresPayment: false, priceEnvKey: null },
+  "rental-listing": { requiresPayment: false, priceEnvKey: null },
 };
 
 export function normalizeSubmissionPayload(input) {
   const get = (key) => String(input?.[key] ?? "").trim();
-  const submissionType = get("submissionType") || "free-draft-review";
-  const paymentPolicy = submissionTypePaymentPolicy[submissionType] ?? submissionTypePaymentPolicy["free-draft-review"];
+  const rawSubmissionType = get("submissionType") || "residential-sale";
+  const submissionType = submissionTypePaymentPolicy[rawSubmissionType] ? rawSubmissionType : "residential-sale";
+  const paymentPolicy = submissionTypePaymentPolicy[submissionType];
 
   return {
-    id: get("id"),
     submissionType,
     contactName: get("contactName"),
     contactMethod: get("contactMethod"),
     sourceType: get("sourceType") || "owner",
     listingStatus: get("listingStatus") || "active",
     propertyAddress: get("propertyAddress"),
-    propertyType: get("propertyType") || "house",
+    propertyType: get("propertyType") || (submissionType === "land-listing" ? "land-acreage" : "residential"),
     priceOrRent: get("priceOrRent"),
     beds: get("beds"),
     baths: get("baths"),
@@ -55,8 +52,8 @@ export function validateSubmissionPayload(payload) {
   return { ok: errors.length === 0, errors };
 }
 
-export function createSubmissionRecord(payload, now = new Date()) {
-  const normalized = normalizeSubmissionPayload(payload);
+export function createSubmissionRecord(input, now = new Date()) {
+  const normalized = normalizeSubmissionPayload(input);
   const validation = validateSubmissionPayload(normalized);
 
   if (!validation.ok) {
@@ -79,12 +76,26 @@ export function createSubmissionRecord(payload, now = new Date()) {
   };
 }
 
+export function buildCheckoutIntent(record, env = process.env) {
+  const policy = submissionTypePaymentPolicy[record.submissionType];
+
+  if (!policy.requiresPayment) return { required: false, status: "not_required", priceId: null, priceEnvKey: null };
+
+  const priceId = policy.priceEnvKey ? env[policy.priceEnvKey] : undefined;
+  return {
+    required: true,
+    status: priceId ? "ready" : "missing_price_id",
+    priceId: priceId || null,
+    priceEnvKey: policy.priceEnvKey,
+  };
+}
+
 export function buildAdminNotification(record) {
   return {
     to: process.env.LRPR_ADMIN_EMAIL || "admin@lrpr.local",
-    subject: `New LRPR submission: ${record.submissionType}`,
+    subject: `New LRPR property submission: ${record.submissionType}`,
     preview: `${record.contactName} submitted ${record.propertyAddress || record.propertyType} for ${record.status}.`,
-    templateKey: "submission.created",
+    templateKey: "property_submission.created",
     payload: {
       submissionId: record.id,
       submissionType: record.submissionType,
@@ -92,23 +103,6 @@ export function buildAdminNotification(record) {
       contactName: record.contactName,
       propertyAddress: record.propertyAddress,
     },
-  };
-}
-
-export function buildCheckoutIntent(record, env = process.env) {
-  const policy = submissionTypePaymentPolicy[record.submissionType] ?? submissionTypePaymentPolicy["free-draft-review"];
-
-  if (!policy.requiresPayment) {
-    return { required: false, status: "not_required", priceId: null };
-  }
-
-  const priceId = policy.priceEnvKey ? env[policy.priceEnvKey] : null;
-
-  return {
-    required: true,
-    status: priceId ? "ready" : "missing_price_id",
-    priceId: priceId || null,
-    priceEnvKey: policy.priceEnvKey,
   };
 }
 
@@ -123,6 +117,7 @@ export async function appendLocalSubmission(record, options = {}) {
     if (error?.code !== "ENOENT") throw error;
   }
 
-  await writeFile(filePath, `${existing}${JSON.stringify(record)}\n`);
+  await writeFile(filePath, `${existing}${JSON.stringify(record)}
+`);
   return { filePath, id: record.id };
 }
