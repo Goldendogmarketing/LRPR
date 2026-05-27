@@ -19,25 +19,25 @@ const queueItems = [
     title: "Starke rental packet",
     submitter: "Property manager submitted",
     city: "Starke",
-    status: "Payment pending",
-    gates: ["Account validated", "Payment pending", "Photos needed", "Manager contact verified"],
+    status: "Account pending",
+    gates: ["Account validation needed", "Payment not required", "Photos needed", "Manager contact verified"],
     priority: "Medium",
   },
   {
     id: "LRPR-1044",
-    type: "Vendor / Service Pro profile",
-    title: "Septic & well service profile",
-    submitter: "Vendor submitted",
+    type: "Land / lot listing",
+    title: "Melrose acreage packet",
+    submitter: "Agent submitted",
     city: "Melrose",
     status: "Changes requested",
-    gates: ["Account validated", "Payment complete", "License/source review", "Category placement pending"],
+    gates: ["Account validated", "Parcel proof needed", "Permission/source review", "Data enrichment queued"],
     priority: "Medium",
   },
 ];
 
 const workflowStats = [
   ["Pending review", "12", "Needs admin decision"],
-  ["Payment pending", "5", "Stripe checkout not complete"],
+  ["Account pending", "5", "Waiting on validated submitter account"],
   ["Changes requested", "4", "Waiting on submitter"],
   ["Publish ready", "3", "Passed all gates"],
 ];
@@ -57,13 +57,14 @@ export const metadata = {
 };
 
 type AdminPageProps = {
-  searchParams?: Promise<{ decision?: string; submission?: string }>;
+  searchParams?: Promise<{ decision?: string; submission?: string; status?: string }>;
 };
 
 export default async function AdminPage({ searchParams }: AdminPageProps) {
   const params = await searchParams;
   const decision = params?.decision;
   const submission = params?.submission;
+  const status = params?.status;
 
   return (
     <main className="min-h-screen bg-[#f7f4ed] text-slate-950">
@@ -75,13 +76,17 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
             <h1 className="mt-3 text-4xl font-black tracking-[-0.04em] sm:text-6xl">Approval queue for trusted local inventory.</h1>
             <p className="mt-4 max-w-3xl text-base leading-8 text-slate-600">This dashboard is the blueprint for the database-backed review queue: account validation, paid submission checks, source verification, enrichment, and final publishing.</p>
           </div>
-          <Link href="/submit-listing" className="rounded-full bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-lg shadow-slate-900/15">Open submission page</Link>
+          <div className="flex flex-wrap gap-3">
+            <Link href="/submit-listing" className="rounded-full bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-lg shadow-slate-900/15">Open property intake</Link>
+            <Link href="/admin/service-providers" className="rounded-full bg-white px-5 py-3 text-sm font-black text-slate-800 ring-1 ring-slate-200">Service providers</Link>
+            <Link href="/admin/resources" className="rounded-full bg-white px-5 py-3 text-sm font-black text-slate-800 ring-1 ring-slate-200">Local resources</Link>
+          </div>
         </div>
 
         <div className="mt-8 grid gap-4 md:grid-cols-4">
           {decision && submission ? (
             <div className="rounded-3xl bg-emerald-50 p-5 text-sm font-bold text-emerald-950 ring-1 ring-emerald-100 md:col-span-4">
-              Admin action scaffold recorded: <span className="font-black">{decision}</span> for <span className="font-black">{submission}</span>. Real version will persist this to Supabase and queue Resend updates.
+              Admin action scaffold recorded: <span className="font-black">{decision}</span> for <span className="font-black">{submission}</span>{status ? <> · next status: <span className="font-black">{status}</span></> : null}. Review/event/email request builders are now created for Supabase + Resend readiness.
             </div>
           ) : null}
           {workflowStats.map(([label, value, note]) => (
@@ -120,6 +125,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
                     </div>
                     <form action={adminDecisionAction} className="grid min-w-44 gap-2">
                       <input type="hidden" name="submissionId" value={item.id} />
+                      <textarea name="notes" placeholder="Review notes" className="min-h-20 rounded-2xl bg-white px-3 py-2 text-sm font-semibold text-slate-700 ring-1 ring-slate-200" />
                       <button name="decision" value="approved" className="rounded-2xl bg-slate-950 px-4 py-3 text-sm font-black text-white">Review / approve</button>
                       <button name="decision" value="changes_requested" className="rounded-2xl bg-white px-4 py-3 text-sm font-black text-slate-700 ring-1 ring-slate-200">Request changes</button>
                     </form>
