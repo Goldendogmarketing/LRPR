@@ -49,7 +49,6 @@ export default async function SubmitListingPage({ searchParams }: SubmitListingP
   const submittedId = params?.submitted;
   const error = params?.error;
   const status = params?.status;
-  const checkout = params?.checkout;
 
   return (
     <main className="min-h-screen bg-[#f7f4ed] text-slate-950">
@@ -73,7 +72,7 @@ export default async function SubmitListingPage({ searchParams }: SubmitListingP
         <form action={submitListingAction} className="rounded-[2.5rem] bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.08)] ring-1 ring-slate-200 sm:p-7">
           {submittedId ? (
             <div className="mb-5 rounded-3xl bg-emerald-50 p-4 text-sm font-bold leading-6 text-emerald-950 ring-1 ring-emerald-100">
-              Draft saved locally as <span className="font-black">{submittedId}</span>. Current status: <span className="font-black">{status}</span>. Checkout: <span className="font-black">{checkout}</span>. Next: wire this to Supabase/Clerk/Resend when keys are available.
+              ✅ Submission saved as <span className="font-black">{submittedId}</span>. Current status: <span className="font-black">{status}</span>. It will appear in the <Link href="/admin" className="underline">admin review queue</Link> for permission verification, source quality, and final approval before publishing.
             </div>
           ) : null}
           {error ? (
@@ -99,8 +98,8 @@ export default async function SubmitListingPage({ searchParams }: SubmitListingP
             <label className="block text-sm font-black text-slate-800 sm:col-span-2">Notes<textarea name="notes" className="mt-2 min-h-32 w-full rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:border-cyan-700" placeholder="Lake access, acreage, condition, lease terms, showing notes, source links, or anything LRPR should verify." /></label>
           </div>
 
-          <button type="submit" className="mt-6 w-full rounded-2xl bg-slate-950 px-5 py-4 text-sm font-black text-white shadow-lg shadow-slate-900/15">Save property intake draft</button>
-          <p className="mt-3 text-center text-xs font-semibold text-slate-500">Saves to local/provider-ready fallback now; Supabase, Clerk, and Resend can be wired when keys are available.</p>
+          <button type="submit" className="mt-6 w-full rounded-2xl bg-slate-950 px-5 py-4 text-sm font-black text-white shadow-lg shadow-slate-900/15">Submit property for review</button>
+          <p className="mt-3 text-center text-xs font-semibold text-slate-500">Saved to Supabase. Clerk account validation and Resend admin notifications wire in next sprints.</p>
         </form>
       </section>
 
