@@ -28,11 +28,19 @@ create table if not exists profiles (
   clerk_user_id text unique not null,
   email text not null,
   full_name text,
-  role text not null default 'submitter',
+  role text not null default 'free',
   account_validated boolean not null default false,
+  tier_selected_at timestamptz,
+  payment_required boolean not null default false,
+  payment_complete boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- Idempotent column adds for existing deployments — safe to re-run.
+alter table profiles add column if not exists tier_selected_at timestamptz;
+alter table profiles add column if not exists payment_required boolean not null default false;
+alter table profiles add column if not exists payment_complete boolean not null default false;
 
 create table if not exists submissions (
   id uuid primary key default gen_random_uuid(),
