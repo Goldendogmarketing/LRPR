@@ -12,6 +12,7 @@ import {
   createSupabaseServerClient,
   getOrCreateProfile,
 } from "@/lib/supabase/server";
+import { canSubmitListings } from "@/lib/tiers";
 
 function toNumberOrNull(value: string): number | null {
   if (!value) return null;
@@ -59,6 +60,15 @@ export async function submitListingAction(formData: FormData) {
     email: primaryEmail,
     fullName,
   });
+
+  // Defense in depth: re-check tier authorization on the server even though
+  // the page-level check already gated rendering. A signed-in user could
+  // POST to this action directly with a malformed tier; we reject here.
+  const isAdmin = user?.publicMetadata?.role === "admin";
+  if (!canSubmitListings({ profileRole: profile.role, isAdmin })) {
+    // Send them back to the listing page which will render the upgrade UI.
+    redirect("/submit-listing");
+  }
 
   const { data, error } = await supabase
     .from("submissions")

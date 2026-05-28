@@ -110,8 +110,28 @@ export const PAID_TIER_IDS: TierId[] = TIER_IDS.filter(
   (id) => TIERS[id].requiresPayment,
 );
 
+/**
+ * Tiers permitted to submit property listings via /submit-listing.
+ * Free / investor / vendor are blocked because their role isn't "I have
+ * property to list." Admin is checked separately and always passes.
+ */
+export const SUBMITTER_TIERS: TierId[] = ["fsbo", "agent"];
+
 export function isTierId(value: string): value is TierId {
   return (TIER_IDS as readonly string[]).includes(value);
+}
+
+/**
+ * Authorization helper for /submit-listing gating.
+ * Admin (Clerk publicMetadata.role === 'admin') always wins.
+ */
+export function canSubmitListings(args: {
+  profileRole: string | null | undefined;
+  isAdmin: boolean;
+}): boolean {
+  if (args.isAdmin) return true;
+  if (!args.profileRole) return false;
+  return (SUBMITTER_TIERS as readonly string[]).includes(args.profileRole);
 }
 
 /**

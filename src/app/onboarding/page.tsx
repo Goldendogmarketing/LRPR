@@ -14,7 +14,7 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 
 type OnboardingPageProps = {
-  searchParams?: Promise<{ error?: string }>;
+  searchParams?: Promise<{ error?: string; reselect?: string }>;
 };
 
 export default async function OnboardingPage({
@@ -27,8 +27,11 @@ export default async function OnboardingPage({
 
   const params = await searchParams;
   const error = params?.error;
+  const reselect = params?.reselect === "1";
 
-  // If the user has already completed onboarding, send them home.
+  // If the user has already completed onboarding, send them home — unless
+  // they explicitly want to re-pick (e.g. they were bounced from a tier-
+  // gated page and want to upgrade).
   const supabase = createSupabaseServerClient();
   const { data: existingProfile } = await supabase
     .from("profiles")
@@ -36,7 +39,7 @@ export default async function OnboardingPage({
     .eq("clerk_user_id", user.id)
     .maybeSingle();
 
-  if (existingProfile?.tier_selected_at) {
+  if (existingProfile?.tier_selected_at && !reselect) {
     redirect("/?welcome=back");
   }
 

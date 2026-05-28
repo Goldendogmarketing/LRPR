@@ -1,5 +1,14 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { currentUser } from "@clerk/nextjs/server";
 import { Header } from "@/components/Header";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import {
+  TIERS,
+  SUBMITTER_TIERS,
+  canSubmitListings,
+  type TierId,
+} from "@/lib/tiers";
 import { submitListingAction } from "./actions";
 
 const sourceTypes = [
@@ -49,6 +58,85 @@ export default async function SubmitListingPage({ searchParams }: SubmitListingP
   const submittedId = params?.submitted;
   const error = params?.error;
   const status = params?.status;
+
+  // Tier gate: middleware already enforced "signed in." Here we additionally
+  // enforce "tier is FSBO, Agent, or Admin."
+  const user = await currentUser();
+  const isAdmin = user?.publicMetadata?.role === "admin";
+
+  const supabase = createSupabaseServerClient();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role, tier_selected_at")
+    .eq("clerk_user_id", user!.id)
+    .maybeSingle();
+
+  // No profile yet OR onboarding incomplete → send to onboarding to pick a tier.
+  if (!profile?.tier_selected_at) {
+    redirect("/onboarding");
+  }
+
+  if (!canSubmitListings({ profileRole: profile.role, isAdmin })) {
+    const currentTier = profile.role in TIERS ? TIERS[profile.role as TierId] : null;
+    return (
+      <main className="min-h-screen bg-[#f7f4ed] text-slate-950">
+        <Header />
+        <section className="mx-auto grid max-w-3xl gap-6 px-4 py-20 sm:px-6 lg:px-8">
+          <div className="rounded-[2.5rem] bg-white p-8 shadow-[0_18px_60px_rgba(15,23,42,0.08)] ring-1 ring-slate-200 sm:p-10">
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-700">
+              Upgrade required
+            </p>
+            <h1 className="mt-3 text-3xl font-black tracking-[-0.04em] sm:text-4xl">
+              Property submissions are limited to FSBO and Agent / Broker tiers.
+            </h1>
+            <p className="mt-4 text-sm leading-7 text-slate-600">
+              You&apos;re currently signed up as{" "}
+              <span className="font-black text-slate-900">
+                {currentTier?.label ?? profile.role}
+              </span>
+              . That tier is for{" "}
+              <span className="font-semibold">
+                {currentTier?.audience ?? "browsing"}
+              </span>{" "}
+              — not for listing property.
+            </p>
+
+            <div className="mt-6 rounded-2xl bg-slate-50 p-5 ring-1 ring-slate-200">
+              <p className="text-sm font-black text-slate-900">
+                Tiers that can submit property:
+              </p>
+              <ul className="mt-3 space-y-2 text-sm font-semibold text-slate-700">
+                {SUBMITTER_TIERS.map((tierId) => (
+                  <li key={tierId} className="flex items-start gap-2">
+                    <span className="mt-0.5 text-cyan-700">✓</span>
+                    <span>
+                      <span className="font-black">{TIERS[tierId].label}</span>{" "}
+                      — {TIERS[tierId].audience}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link
+                href="/onboarding?reselect=1"
+                className="rounded-full bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-lg shadow-slate-900/15"
+              >
+                Change my tier
+              </Link>
+              <Link
+                href="/"
+                className="rounded-full bg-white px-5 py-3 text-sm font-black text-slate-700 ring-1 ring-slate-200"
+              >
+                ← Back to home
+              </Link>
+            </div>
+          </div>
+        </section>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-[#f7f4ed] text-slate-950">
