@@ -151,18 +151,11 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   const stats = {
     pending_review: submissions.filter((s) => s.status === "pending_review")
       .length,
-    account_pending: submissions.filter((s) => s.status === "account_pending")
-      .length,
     changes_requested: submissions.filter(
       (s) => s.status === "changes_requested",
     ).length,
-    publish_ready: submissions.filter(
-      (s) =>
-        s.account_validated &&
-        (!s.payment_required || s.payment_complete) &&
-        s.admin_approved &&
-        s.permission_confirmed,
-    ).length,
+    approved: submissions.filter((s) => s.status === "approved").length,
+    published: submissions.filter((s) => s.status === "published").length,
   };
 
   const workflowStats: Array<[string, string, string]> = [
@@ -172,16 +165,20 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
       "Needs admin decision",
     ],
     [
-      "Account pending",
-      String(stats.account_pending),
-      "Waiting on validated submitter account",
-    ],
-    [
       "Changes requested",
       String(stats.changes_requested),
       "Waiting on submitter",
     ],
-    ["Publish ready", String(stats.publish_ready), "Passed all gates"],
+    [
+      "Approved",
+      String(stats.approved),
+      "Admin approved, awaiting other gates",
+    ],
+    [
+      "Published",
+      String(stats.published),
+      "Live and visible to the public",
+    ],
   ];
 
   return (
@@ -225,15 +222,21 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
         </div>
 
         <div className="mt-8 grid gap-4 md:grid-cols-4">
-          {decision && submission ? (
+          {decision === "error" && submission ? (
+            <div className="rounded-3xl bg-rose-50 p-5 text-sm font-bold text-rose-950 ring-1 ring-rose-100 md:col-span-4">
+              ❌ Decision failed for{" "}
+              <span className="font-black">{submission}</span>. Check the
+              server logs for details.
+            </div>
+          ) : decision && submission ? (
             <div className="rounded-3xl bg-emerald-50 p-5 text-sm font-bold text-emerald-950 ring-1 ring-emerald-100 md:col-span-4">
-              Admin action scaffold recorded:{" "}
+              ✅ Decision saved:{" "}
               <span className="font-black">{decision}</span> for{" "}
-              <span className="font-black">{submission}</span>
+              <span className="font-black">{submission.slice(0, 8)}</span>
               {status ? (
                 <>
                   {" "}
-                  · next status:{" "}
+                  · status now:{" "}
                   <span className="font-black">{status}</span>
                 </>
               ) : null}
@@ -355,16 +358,23 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
                           <button
                             name="decision"
                             value="approved"
-                            className="rounded-2xl bg-slate-950 px-4 py-3 text-sm font-black text-white"
+                            className="rounded-2xl bg-emerald-700 px-4 py-3 text-sm font-black text-white hover:bg-emerald-800"
                           >
-                            Review / approve
+                            Approve
                           </button>
                           <button
                             name="decision"
                             value="changes_requested"
-                            className="rounded-2xl bg-white px-4 py-3 text-sm font-black text-slate-700 ring-1 ring-slate-200"
+                            className="rounded-2xl bg-white px-4 py-3 text-sm font-black text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"
                           >
                             Request changes
+                          </button>
+                          <button
+                            name="decision"
+                            value="rejected"
+                            className="rounded-2xl bg-white px-4 py-3 text-sm font-black text-rose-700 ring-1 ring-rose-200 hover:bg-rose-50"
+                          >
+                            Reject
                           </button>
                         </form>
                       </div>
