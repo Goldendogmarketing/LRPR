@@ -156,6 +156,14 @@ create table if not exists local_resources (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists favorites (
+  id uuid primary key default gen_random_uuid(),
+  profile_id uuid not null references profiles(id) on delete cascade,
+  listing_slug text not null,
+  created_at timestamptz not null default now(),
+  unique (profile_id, listing_slug)
+);
+
 create table if not exists notification_outbox (
   id uuid primary key default gen_random_uuid(),
   submission_id uuid references submissions(id) on delete cascade,
@@ -174,6 +182,7 @@ create index if not exists submission_events_submission_idx on submission_events
 create index if not exists notification_outbox_status_idx on notification_outbox(status, created_at);
 create index if not exists service_provider_profiles_category_idx on service_provider_profiles(category, city, county);
 create index if not exists local_resources_type_idx on local_resources(resource_type, city, county);
+create index if not exists favorites_profile_idx on favorites(profile_id, created_at desc);
 
 -- Publish eligibility view for admin queue.
 create or replace view submission_publish_gates as

@@ -53,14 +53,24 @@ export async function Header() {
 
         <div className="flex items-center gap-2">
           {isSignedIn ? (
-            <UserButton
-              afterSignOutUrl="/"
-              appearance={{
-                elements: {
-                  avatarBox: "h-9 w-9",
-                },
-              }}
-            />
+            <>
+              <Link
+                href="/favorites"
+                className="hidden rounded-full bg-white px-3 py-2 text-sm font-bold text-slate-700 ring-1 ring-slate-200 transition hover:bg-rose-50 hover:text-rose-700 sm:inline-flex"
+                aria-label="My favorites"
+              >
+                <span aria-hidden className="mr-1.5">♥</span>
+                Favorites
+              </Link>
+              <UserButton
+                afterSignOutUrl="/"
+                appearance={{
+                  elements: {
+                    avatarBox: "h-9 w-9",
+                  },
+                }}
+              />
+            </>
           ) : (
             <>
               <SignInButton mode="modal">
