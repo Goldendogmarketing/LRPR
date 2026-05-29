@@ -16,6 +16,10 @@ import {
   type ListedBy,
 } from "@/data/site";
 import {
+  getAllListings,
+  getListingBySlug,
+} from "@/lib/listings-source";
+import {
   getListingPublicDataFacts,
   getPublicDataGeneratedAt,
 } from "@/lib/public-data-enrichment";
@@ -54,10 +58,16 @@ export default async function ListingPage({
   searchParams: SearchParams;
 }) {
   const [{ slug }, { preview }] = await Promise.all([params, searchParams]);
-  const listing = listings.find((item) => item.slug === slug);
+
+  // Create the Supabase client early so it can be reused for the listing
+  // lookup, related listings, and favorites in a single request.
+  const supabase = createSupabaseServerClient();
+
+  const listing = await getListingBySlug(supabase, slug);
   if (!listing) notFound();
 
-  const related = listings
+  const allListings = await getAllListings(supabase);
+  const related = allListings
     .filter(
       (item) =>
         item.slug !== listing.slug &&
@@ -69,7 +79,6 @@ export default async function ListingPage({
   // Personalization for save buttons.
   const { userId } = await auth();
   const isSignedIn = Boolean(userId);
-  const supabase = createSupabaseServerClient();
   const savedSlugs = await getFavoriteSlugsForClerkUser(supabase, userId);
   const isThisSaved = savedSlugs.has(listing.slug);
 

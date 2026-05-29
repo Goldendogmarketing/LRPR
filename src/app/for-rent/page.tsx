@@ -3,10 +3,10 @@ import { Header } from "@/components/Header";
 import { InternalLinkHub } from "@/components/InternalLinkHub";
 import { ListingsBrowse } from "@/components/ListingsBrowse";
 import {
-  getListingsByType,
   rentCategories,
   type ListingStatus,
 } from "@/data/site";
+import { getListingsByTypeMerged } from "@/lib/listings-source";
 import { getFavoriteSlugsForClerkUser } from "@/lib/favorites";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -27,7 +27,8 @@ export default async function ForRentPage({
 }) {
   const { category, status } = await searchParams;
 
-  const allForRent = getListingsByType("for-rent");
+  const supabase = createSupabaseServerClient();
+  const allForRent = await getListingsByTypeMerged(supabase, "for-rent");
   const activeCategory = category && rentCategories.includes(category) ? category : null;
   const activeStatus =
     status && (VALID_STATUSES as readonly string[]).includes(status)
@@ -42,7 +43,6 @@ export default async function ForRentPage({
 
   const { userId } = await auth();
   const isSignedIn = Boolean(userId);
-  const supabase = createSupabaseServerClient();
   const savedSlugs = await getFavoriteSlugsForClerkUser(supabase, userId);
 
   return (

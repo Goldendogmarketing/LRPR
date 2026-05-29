@@ -3,10 +3,10 @@ import { Header } from "@/components/Header";
 import { InternalLinkHub } from "@/components/InternalLinkHub";
 import { ListingsBrowse } from "@/components/ListingsBrowse";
 import {
-  getListingsByType,
   saleCategories,
   type ListingStatus,
 } from "@/data/site";
+import { getListingsByTypeMerged } from "@/lib/listings-source";
 import { getFavoriteSlugsForClerkUser } from "@/lib/favorites";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -27,7 +27,8 @@ export default async function ForSalePage({
 }) {
   const { category, status } = await searchParams;
 
-  const allForSale = getListingsByType("for-sale");
+  const supabase = createSupabaseServerClient();
+  const allForSale = await getListingsByTypeMerged(supabase, "for-sale");
   const activeCategory = category && saleCategories.includes(category) ? category : null;
   const activeStatus =
     status && (VALID_STATUSES as readonly string[]).includes(status)
@@ -45,7 +46,6 @@ export default async function ForSalePage({
   // Personalization for the save buttons in each card.
   const { userId } = await auth();
   const isSignedIn = Boolean(userId);
-  const supabase = createSupabaseServerClient();
   const savedSlugs = await getFavoriteSlugsForClerkUser(supabase, userId);
 
   return (

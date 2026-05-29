@@ -9,6 +9,7 @@ import {
   getOrCreateProfile,
   type SubmissionRow,
 } from "@/lib/supabase/server";
+import { slugify, type Listing, type ListedBy, type ListingType, type ListingStatus } from "@/data/site";
 
 /**
  * Translate the workflow's abstract status into a real DB enum value.
@@ -189,6 +190,117 @@ export async function adminDecisionAction(formData: FormData) {
     reviewerProfileId: reviewerProfile.id,
     canPublish: workflow.publishGate.canPublish,
   });
+
+  // ── Publish to published_listings ──────────────────────────────────────
+  // When the submission reaches "published" status, build a full Listing
+  // object and upsert it into published_listings so it becomes live on the
+  // public site. Wrapped in try/catch so any failure here cannot break the
+  // existing admin decision flow.
+  if (toStatus === "published") {
+    try {
+      const sub = submission as unknown as SubmissionRow;
+
+      // Derive the slug — id suffix avoids slug collisions across cities.
+      const listingSlug = slugify(
+        `${sub.address_line ?? "listing"}-${sub.city ?? ""}-${sub.id.slice(0, 8)}`,
+      );
+
+      // Map submission_type → ListingType.
+      const listingType: ListingType =
+        sub.submission_type === "rental-listing" ? "for-rent" : "for-sale";
+
+      // Map listing_status → ListingStatus, defaulting to "active".
+      const validStatuses: ListingStatus[] = ["active", "pending", "sold", "archived"];
+      const listingStatus: ListingStatus =
+        sub.listing_status && (validStatuses as string[]).includes(sub.listing_status)
+          ? (sub.listing_status as ListingStatus)
+          : "active";
+
+      // Sort photos by ordering and extract URLs.
+      const sortedPhotos = (sub.photos ?? [])
+        .slice()
+        .sort((a, b) => (a.ordering ?? 0) - (b.ordering ?? 0));
+      const photoUrls = sortedPhotos.map((p) => p.url);
+      const heroPhoto: string | undefined = photoUrls[0];
+
+      const price = sub.price_or_rent ?? "Contact for price";
+      const beds: number | undefined = sub.beds ?? undefined;
+      const baths: number | undefined = sub.baths ?? undefined;
+
+      // Derive a stable numeric id from the slug (used only as a React key).
+      let numericId = 0;
+      for (let i = 0; i < listingSlug.length; i++) {
+        numericId = (numericId * 31 + listingSlug.charCodeAt(i)) >>> 0;
+      }
+      // Ensure positive and non-zero.
+      const stableId = (numericId % 2_000_000_000) + 1;
+
+      // Derive a readable category from property_type.
+      const category = sub.property_type
+        ? sub.property_type
+            .replace(/-/g, " ")
+            .replace(/\b\w/g, (c) => c.toUpperCase())
+        : "Property";
+
+      const detail = `${beds ?? "—"} bed · ${baths ?? "—"} bath`;
+
+      const description =
+        sub.notes?.trim() ||
+        `${sub.property_type ?? "Property"} in ${sub.city ?? "the Lake Region"}, ${sub.county ?? "FL"}.`;
+
+      const listing: Listing = {
+        id: stableId,
+        slug: listingSlug,
+        address: sub.address_line ?? "Listing",
+        city: sub.city ?? "",
+        county: sub.county ?? "",
+        state: sub.state ?? "FL",
+        postalCode: sub.postal_code ?? "",
+        latitude: sub.latitude ?? 0,
+        longitude: sub.longitude ?? 0,
+        type: listingType,
+        status: listingStatus,
+        category,
+        price,
+        beds,
+        baths,
+        detail,
+        description,
+        heroPhoto,
+        photos: photoUrls,
+        listedBy: (sub.listed_by as unknown as ListedBy) ?? undefined,
+      };
+
+      const { error: upsertErr } = await supabase
+        .from("published_listings")
+        .upsert(
+          {
+            submission_id: sub.id,
+            slug: listingSlug,
+            title: sub.address_line ?? "Listing",
+            public_status: listingStatus,
+            city: sub.city ?? "",
+            county: sub.county ?? "",
+            latitude: sub.latitude ?? null,
+            longitude: sub.longitude ?? null,
+            photos: sub.photos ?? [],
+            listed_by: sub.listed_by ?? {},
+            listing_data: listing,
+            published_at: new Date().toISOString(),
+          },
+          { onConflict: "slug" },
+        );
+
+      if (upsertErr) {
+        console.error("[admin] Failed to upsert published_listings:", upsertErr);
+      } else {
+        console.info("[admin] Listing published to published_listings:", listingSlug);
+      }
+    } catch (publishErr) {
+      // Non-fatal — log and continue. The submission update + redirect still runs.
+      console.error("[admin] Unexpected error publishing listing:", publishErr);
+    }
+  }
 
   // Refresh the admin queue so the changed row reflects new status immediately.
   revalidatePath("/admin");

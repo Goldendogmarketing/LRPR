@@ -19,6 +19,7 @@ import {
   type StoredPhoto,
 } from "@/lib/supabase/storage";
 import { canSubmitListings } from "@/lib/tiers";
+import { geocodeAddress } from "@/lib/geocoding";
 
 function toNumberOrNull(value: string): number | null {
   if (!value) return null;
@@ -144,6 +145,8 @@ export async function submitListingAction(formData: FormData) {
     accentColor: profileRow?.accent_color ?? null,
   };
 
+  const geo = await geocodeAddress(record.propertyAddress);
+
   const { data, error } = await supabase
     .from("submissions")
     .insert({
@@ -172,6 +175,14 @@ export async function submitListingAction(formData: FormData) {
         contentType: p.contentType,
       })),
       listed_by: listedBySnapshot,
+      geocoding_status: geo.ok ? "succeeded" : "failed",
+      latitude: geo.ok ? geo.latitude : null,
+      longitude: geo.ok ? geo.longitude : null,
+      geocoded_at: new Date().toISOString(),
+      city: geo.ok ? geo.city : null,
+      county: geo.ok ? geo.county : null,
+      state: geo.ok ? (geo.state ?? "FL") : "FL",
+      postal_code: geo.ok ? geo.postalCode : null,
     })
     .select("id, status")
     .single();
@@ -192,6 +203,7 @@ export async function submitListingAction(formData: FormData) {
     clerkUserId: userId,
     notificationTo: notification.to,
     checkoutStatus: checkout.status,
+    geocoded: geo.ok,
   });
 
   redirect(
