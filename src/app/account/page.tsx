@@ -6,7 +6,7 @@ import { PhotoUpload } from "@/components/PhotoUpload";
 import { DEFAULT_ACCENT } from "@/components/immersive";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { PAID_TIER_IDS, TIERS, type TierId } from "@/lib/tiers";
-import { updateProfileAction } from "./actions";
+import { createPortalSession, updateProfileAction } from "./actions";
 
 export const metadata = {
   title: "My Account — LRPR",
@@ -45,9 +45,16 @@ type ProfileRow = {
   accent_color: string | null;
   brand_initials: string | null;
   immersive_enabled: boolean | null;
+  subscription_status: string | null;
+  stripe_customer_id: string | null;
+  payment_complete: boolean | null;
 };
 
-type SearchParams = Promise<{ saved?: string; error?: string }>;
+type SearchParams = Promise<{
+  saved?: string;
+  error?: string;
+  checkout?: string;
+}>;
 
 export default async function AccountPage({
   searchParams,
@@ -62,7 +69,7 @@ export default async function AccountPage({
   const { data: profile } = await supabase
     .from("profiles")
     .select(
-      "id, email, role, full_name, display_name, brokerage, phone, tagline, headshot_url, accent_color, brand_initials, immersive_enabled",
+      "id, email, role, full_name, display_name, brokerage, phone, tagline, headshot_url, accent_color, brand_initials, immersive_enabled, subscription_status, stripe_customer_id, payment_complete",
     )
     .eq("clerk_user_id", user.id)
     .maybeSingle<ProfileRow>();
@@ -154,6 +161,61 @@ export default async function AccountPage({
             {params.error}
           </div>
         ) : null}
+        {params.checkout === "success" ? (
+          <div className="mt-6 rounded-3xl bg-emerald-50 p-4 text-sm font-bold text-emerald-950 ring-1 ring-emerald-200">
+            ✅ Subscription active — thank you! Your{" "}
+            {TIERS[profile.role as TierId]?.label ?? profile.role} plan is now
+            unlocked. (If it still shows pending, the confirmation can take a few
+            seconds to sync.)
+          </div>
+        ) : null}
+
+        {/* Billing / subscription status */}
+        <div className="mt-6 flex flex-col gap-4 rounded-3xl bg-white p-6 ring-1 ring-slate-200 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-700">
+              Billing
+            </p>
+            <p className="mt-1 text-lg font-black text-slate-900">
+              {TIERS[profile.role as TierId]?.label ?? profile.role} plan
+            </p>
+            <p className="mt-1 text-sm font-semibold text-slate-600">
+              Status:{" "}
+              <span
+                className={
+                  profile.payment_complete
+                    ? "text-emerald-700"
+                    : "text-amber-700"
+                }
+              >
+                {profile.subscription_status
+                  ? profile.subscription_status
+                  : profile.payment_complete
+                    ? "active"
+                    : "not subscribed"}
+              </span>
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            {profile.stripe_customer_id ? (
+              <form action={createPortalSession}>
+                <button
+                  type="submit"
+                  className="rounded-full bg-slate-950 px-5 py-3 text-sm font-black text-white hover:bg-slate-800"
+                >
+                  Manage subscription
+                </button>
+              </form>
+            ) : (
+              <Link
+                href={`/onboarding/checkout?tier=${profile.role}`}
+                className="rounded-full bg-cyan-700 px-5 py-3 text-sm font-black text-white hover:bg-cyan-800"
+              >
+                Complete checkout
+              </Link>
+            )}
+          </div>
+        </div>
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
           <form

@@ -46,6 +46,10 @@ create table if not exists profiles (
   -- listing owned by this profile renders with the BW-style black/gold
   -- parallax template instead of the classic layout.
   immersive_enabled boolean not null default false,
+  -- Stripe subscription tracking for paid tiers.
+  stripe_customer_id text,
+  stripe_subscription_id text,
+  subscription_status text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint profiles_accent_color_hex_chk
@@ -64,6 +68,9 @@ alter table profiles add column if not exists headshot_url text;
 alter table profiles add column if not exists accent_color text;
 alter table profiles add column if not exists brand_initials text;
 alter table profiles add column if not exists immersive_enabled boolean not null default false;
+alter table profiles add column if not exists stripe_customer_id text;
+alter table profiles add column if not exists stripe_subscription_id text;
+alter table profiles add column if not exists subscription_status text;
 
 create table if not exists submissions (
   id uuid primary key default gen_random_uuid(),

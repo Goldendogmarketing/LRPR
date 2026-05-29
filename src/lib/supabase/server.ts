@@ -39,6 +39,12 @@ export type ProfileRow = {
   full_name: string | null;
   role: string;
   account_validated: boolean;
+  payment_required: boolean;
+  payment_complete: boolean;
+  // Stripe subscription tracking (added 2026-05-29). Null until first checkout.
+  stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
+  subscription_status: string | null;
   created_at: string;
   updated_at: string;
 };

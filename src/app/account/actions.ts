@@ -13,6 +13,7 @@ import {
   uploadToBucket,
   validatePhotoFile,
 } from "@/lib/supabase/storage";
+import { getStripe, siteOrigin } from "@/lib/stripe";
 
 function pickString(formData: FormData, name: string, max = 500): string | null {
   const raw = formData.get(name);
@@ -145,6 +146,49 @@ export async function updateProfileAction(formData: FormData) {
   revalidatePath("/for-rent");
 
   redirect("/account?saved=1");
+}
+
+/**
+ * Open the Stripe Customer Portal so a paid user can update their card,
+ * view invoices, or cancel. Requires an existing stripe_customer_id
+ * (set by the checkout webhook). Redirects back to /account afterward.
+ */
+export async function createPortalSession() {
+  const { userId } = await auth();
+  if (!userId) redirect("/sign-in?redirect_url=/account");
+
+  const supabase = createSupabaseServerClient();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("stripe_customer_id")
+    .eq("clerk_user_id", userId)
+    .maybeSingle<{ stripe_customer_id: string | null }>();
+
+  if (!profile?.stripe_customer_id) {
+    redirect(
+      `/account?error=${encodeURIComponent(
+        "No active subscription to manage yet.",
+      )}`,
+    );
+  }
+
+  const session = await getStripe()
+    .billingPortal.sessions.create({
+      customer: profile.stripe_customer_id,
+      return_url: `${siteOrigin()}/account`,
+    })
+    .catch((err) => {
+      console.error("Stripe billing portal session failed:", err);
+      return null;
+    });
+
+  if (!session?.url) {
+    redirect(
+      `/account?error=${encodeURIComponent("Could not open the billing portal.")}`,
+    );
+  }
+
+  redirect(session.url);
 }
 
 /**

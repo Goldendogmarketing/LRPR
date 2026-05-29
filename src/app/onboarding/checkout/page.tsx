@@ -2,7 +2,9 @@ import Link from "next/link";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { Header } from "@/components/Header";
-import { TIERS, isTierId, TIER_ACCENT_CLASSES } from "@/lib/tiers";
+import { TIERS, isTierId, TIER_ACCENT_CLASSES, type TierId } from "@/lib/tiers";
+import { priceIdForTier } from "@/lib/stripe";
+import { createCheckoutSession } from "./actions";
 
 export const metadata = {
   title: "Complete your paid account | Lake Region Property Resource",
@@ -11,12 +13,10 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 
 type CheckoutPageProps = {
-  searchParams?: Promise<{ tier?: string }>;
+  searchParams?: Promise<{ tier?: string; error?: string; checkout?: string }>;
 };
 
-export default async function CheckoutPlaceholderPage({
-  searchParams,
-}: CheckoutPageProps) {
+export default async function CheckoutPage({ searchParams }: CheckoutPageProps) {
   const user = await currentUser();
   if (!user) {
     redirect("/sign-in");
@@ -29,6 +29,8 @@ export default async function CheckoutPlaceholderPage({
   }
   const tier = TIERS[tierParam];
   const accent = TIER_ACCENT_CLASSES[tier.accent];
+  // Whether a Stripe Price ID is configured for this tier yet.
+  const priceReady = Boolean(priceIdForTier(tierParam as TierId));
 
   return (
     <main className="min-h-screen bg-[#f7f4ed] text-slate-950">
@@ -41,13 +43,13 @@ export default async function CheckoutPlaceholderPage({
             {tier.label}
           </span>
           <h1 className="mt-4 text-3xl font-black tracking-[-0.04em] sm:text-4xl">
-            Almost done — Stripe checkout is wiring up next sprint.
+            Subscribe to {tier.label}
           </h1>
           <p className="mt-4 text-sm leading-7 text-slate-600">
-            Your account is saved with the{" "}
-            <span className="font-black text-slate-900">{tier.label}</span>{" "}
-            tier. Once we wire Stripe in the next sprint, you&apos;ll come back
-            here and pay to unlock these features:
+            You&apos;re subscribing to the{" "}
+            <span className="font-black text-slate-900">{tier.label}</span> tier.
+            You&apos;ll be redirected to Stripe&apos;s secure checkout to complete
+            payment. Your subscription unlocks:
           </p>
 
           <ul className="mt-6 space-y-3 rounded-2xl bg-slate-50 p-5 text-sm font-semibold text-slate-700">
@@ -59,25 +61,35 @@ export default async function CheckoutPlaceholderPage({
             ))}
           </ul>
 
-          <div className="mt-8 rounded-2xl bg-amber-50 p-4 text-sm font-bold leading-6 text-amber-950 ring-1 ring-amber-100">
-            <p className="font-black text-amber-950">⏳ Payment pending</p>
-            <p className="mt-1">
-              Your account is marked as{" "}
-              <code className="rounded bg-white px-1.5 py-0.5 font-mono text-xs">
-                payment_required = true, payment_complete = false
-              </code>
-              . Premium {tier.label.toLowerCase()} features stay locked until
-              checkout is complete.
-            </p>
-          </div>
+          {params?.checkout === "cancelled" ? (
+            <div className="mt-6 rounded-2xl bg-amber-50 p-4 text-sm font-bold leading-6 text-amber-950 ring-1 ring-amber-100">
+              Checkout was cancelled — you have not been charged. You can try again
+              whenever you&apos;re ready.
+            </div>
+          ) : null}
+          {params?.error ? (
+            <div className="mt-6 rounded-2xl bg-rose-50 p-4 text-sm font-bold leading-6 text-rose-950 ring-1 ring-rose-100">
+              {params.error}
+            </div>
+          ) : null}
 
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Link
-              href="/"
-              className="rounded-full bg-slate-950 px-5 py-3 text-sm font-black text-white"
-            >
-              Continue to LRPR
-            </Link>
+          <div className="mt-8 flex flex-wrap items-center gap-3">
+            {priceReady ? (
+              <form action={createCheckoutSession}>
+                <input type="hidden" name="tier" value={tierParam} />
+                <button
+                  type="submit"
+                  className="rounded-full bg-slate-950 px-6 py-3 text-sm font-black text-white shadow-lg shadow-slate-900/15 hover:bg-slate-800"
+                >
+                  Continue to secure checkout →
+                </button>
+              </form>
+            ) : (
+              <div className="rounded-2xl bg-amber-50 p-4 text-sm font-bold leading-6 text-amber-950 ring-1 ring-amber-100">
+                ⏳ Pricing for this tier isn&apos;t configured yet. Check back
+                shortly — the Stripe price is being set up.
+              </div>
+            )}
             <Link
               href="/onboarding"
               className="rounded-full bg-white px-5 py-3 text-sm font-black text-slate-700 ring-1 ring-slate-200"
@@ -85,6 +97,11 @@ export default async function CheckoutPlaceholderPage({
               ← Pick a different tier
             </Link>
           </div>
+
+          <p className="mt-4 text-xs text-slate-500">
+            Secure payment processed by Stripe. Manage or cancel anytime from your
+            account.
+          </p>
         </div>
       </section>
     </main>
