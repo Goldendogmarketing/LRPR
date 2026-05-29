@@ -77,6 +77,20 @@ export type ListedBy = {
 };
 
 /**
+ * Address-level public-data fact rendered in the listing's PublicDataFacts
+ * panel. Structurally identical to PublicDataFact in public-data-enrichment.ts
+ * (kept inline here to avoid coupling the core data module to the JSON cache).
+ * For published DB listings this is populated by the enrichment pipeline at
+ * publish time; demo listings fall back to the static cache by slug.
+ */
+export type ListingPublicDataFact = {
+  label: string;
+  value: string;
+  sourceName: string;
+  sourceUrl: string;
+};
+
+/**
  * Which template renders the listing detail page.
  *  - "classic"   = the original light-theme card layout (default)
  *  - "immersive" = the BW black/gold parallax presentation
@@ -133,6 +147,12 @@ export type Listing = {
    * to inherit from the listed-by agent's `immersive_enabled` flag.
    */
   presentationStyle?: PresentationStyle;
+  /**
+   * Address-level public-data facts computed by the enrichment pipeline at
+   * publish time (Census / FCC / FEMA). When present, the listing page
+   * renders these instead of the static-by-slug cache.
+   */
+  publicDataFacts?: ListingPublicDataFact[];
 };
 
 export const siteUrl = "https://lakeregionpropertyresource.com";

@@ -74,7 +74,12 @@ export default async function ListingPage({
         (item.city === listing.city || item.county === listing.county),
     )
     .slice(0, 3);
-  const publicDataFacts = getListingPublicDataFacts(listing.slug);
+  // Prefer enrichment facts computed at publish time (real DB listings);
+  // fall back to the static-by-slug cache for demo listings.
+  const publicDataFacts =
+    listing.publicDataFacts && listing.publicDataFacts.length > 0
+      ? listing.publicDataFacts
+      : getListingPublicDataFacts(listing.slug);
 
   // Personalization for save buttons.
   const { userId } = await auth();
