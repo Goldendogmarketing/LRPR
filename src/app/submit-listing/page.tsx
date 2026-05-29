@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { currentUser } from "@clerk/nextjs/server";
 import { Header } from "@/components/Header";
+import { PhotoUpload } from "@/components/PhotoUpload";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   TIERS,
@@ -184,6 +185,23 @@ export default async function SubmitListingPage({ searchParams }: SubmitListingP
             <label className="block text-sm font-black text-slate-800">Beds<input name="beds" className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:border-cyan-700" placeholder="3" /></label>
             <label className="block text-sm font-black text-slate-800">Baths<input name="baths" className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:border-cyan-700" placeholder="2" /></label>
             <label className="block text-sm font-black text-slate-800 sm:col-span-2">Notes<textarea name="notes" className="mt-2 min-h-32 w-full rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:border-cyan-700" placeholder="Lake access, acreage, condition, lease terms, showing notes, source links, or anything LRPR should verify." /></label>
+          </div>
+
+          {/* Photo upload — feeds the immersive listing template once
+              the submission is approved + published. The first photo
+              becomes the parallax hero. */}
+          <div className="mt-6">
+            <p className="text-sm font-black text-slate-800">Property photos</p>
+            <p className="mt-1 text-xs leading-5 text-slate-600">
+              Upload your own or your client&apos;s photos. The first one becomes the immersive hero shot. Order matters: the rest fill the aerial, feature, and CTA sections in sequence.
+            </p>
+            <div className="mt-3">
+              <PhotoUpload
+                name="photos"
+                max={12}
+                helpText="By uploading, you confirm you own or have written permission from the owner/agent to advertise these photos. LRPR admin reviews every photo before publishing."
+              />
+            </div>
           </div>
 
           <button type="submit" className="mt-6 w-full rounded-2xl bg-slate-950 px-5 py-4 text-sm font-black text-white shadow-lg shadow-slate-900/15">Submit property for review</button>

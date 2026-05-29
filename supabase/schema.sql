@@ -33,14 +33,37 @@ create table if not exists profiles (
   tier_selected_at timestamptz,
   payment_required boolean not null default false,
   payment_complete boolean not null default false,
+  -- Immersive listing customization (paid users only). All optional;
+  -- empty falls back to defaults baked into the template.
+  display_name text,
+  brokerage text,
+  phone text,
+  tagline text,
+  headshot_url text,
+  accent_color text,
+  brand_initials text,
+  -- The paid "immersive presentation" upgrade flag. When true, every
+  -- listing owned by this profile renders with the BW-style black/gold
+  -- parallax template instead of the classic layout.
+  immersive_enabled boolean not null default false,
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+  updated_at timestamptz not null default now(),
+  constraint profiles_accent_color_hex_chk
+    check (accent_color is null or accent_color ~ '^#[0-9A-Fa-f]{6}$')
 );
 
 -- Idempotent column adds for existing deployments — safe to re-run.
 alter table profiles add column if not exists tier_selected_at timestamptz;
 alter table profiles add column if not exists payment_required boolean not null default false;
 alter table profiles add column if not exists payment_complete boolean not null default false;
+alter table profiles add column if not exists display_name text;
+alter table profiles add column if not exists brokerage text;
+alter table profiles add column if not exists phone text;
+alter table profiles add column if not exists tagline text;
+alter table profiles add column if not exists headshot_url text;
+alter table profiles add column if not exists accent_color text;
+alter table profiles add column if not exists brand_initials text;
+alter table profiles add column if not exists immersive_enabled boolean not null default false;
 
 create table if not exists submissions (
   id uuid primary key default gen_random_uuid(),
@@ -70,6 +93,10 @@ create table if not exists submissions (
   admin_approved boolean not null default false,
   geocoding_status text not null default 'not_started',
   enrichment_status text not null default 'not_started',
+  -- Immersive template payload: photos uploaded at submission time and
+  -- the agent block snapshot captured when the submission was created.
+  photos jsonb not null default '[]'::jsonb,
+  listed_by jsonb not null default '{}'::jsonb,
   published_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -119,6 +146,9 @@ create table if not exists published_listings (
   latitude numeric,
   longitude numeric,
   public_data jsonb not null default '{}'::jsonb,
+  -- Immersive template payload (mirrored from submissions at publish time).
+  photos jsonb not null default '[]'::jsonb,
+  listed_by jsonb not null default '{}'::jsonb,
   published_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

@@ -12,12 +12,35 @@ import {
   createSupabaseServerClient,
   getOrCreateProfile,
 } from "@/lib/supabase/server";
+import {
+  LISTING_PHOTOS_BUCKET,
+  uploadToBucket,
+  validatePhotoFile,
+  type StoredPhoto,
+} from "@/lib/supabase/storage";
 import { canSubmitListings } from "@/lib/tiers";
 
 function toNumberOrNull(value: string): number | null {
   if (!value) return null;
   const n = Number(value);
   return Number.isFinite(n) ? n : null;
+}
+
+/**
+ * Pull File entries from a FormData field. Browsers can include an empty
+ * File when the user picked nothing, so we also strip zero-byte entries.
+ */
+function extractFiles(formData: FormData, name: string): File[] {
+  const raw = formData.getAll(name);
+  const files: File[] = [];
+  for (const v of raw) {
+    if (typeof v === "string") continue;
+    // FormData values that aren't strings are File-like Blobs in Next.js.
+    if (v && typeof v === "object" && "size" in v && v.size > 0) {
+      files.push(v as File);
+    }
+  }
+  return files;
 }
 
 export async function submitListingAction(formData: FormData) {
@@ -70,6 +93,57 @@ export async function submitListingAction(formData: FormData) {
     redirect("/submit-listing");
   }
 
+  // Upload photos before inserting the submission row so the row carries
+  // the final URLs from the jump. If any photo fails validation, surface
+  // the error and abort before writing anything to the DB.
+  const incomingFiles = extractFiles(formData, "photos");
+  const uploadedPhotos: StoredPhoto[] = [];
+  for (const file of incomingFiles) {
+    const reason = validatePhotoFile(file);
+    if (reason) {
+      redirect(`/submit-listing?error=${encodeURIComponent(reason)}`);
+    }
+    try {
+      const stored = await uploadToBucket(supabase, {
+        bucket: LISTING_PHOTOS_BUCKET,
+        prefix: `submissions/${profile.id}`,
+        file,
+        originalName: file.name,
+      });
+      uploadedPhotos.push(stored);
+    } catch (err) {
+      console.error("Listing photo upload failed:", err);
+      redirect(
+        `/submit-listing?error=${encodeURIComponent(
+          "Failed to upload one of the photos. Please try again.",
+        )}`,
+      );
+    }
+  }
+
+  // Snapshot the submitter's profile customization at submission time so
+  // later profile edits don't silently rewrite this listing's agent block.
+  // The immersive template merges this snapshot with live profile values
+  // via resolveListedBy() in src/lib/listing-presentation.ts.
+  const { data: profileRow } = await supabase
+    .from("profiles")
+    .select(
+      "display_name, brokerage, phone, headshot_url, tagline, accent_color",
+    )
+    .eq("id", profile.id)
+    .maybeSingle();
+
+  const listedBySnapshot = {
+    profileId: profile.id,
+    displayName: profileRow?.display_name ?? fullName ?? null,
+    brokerage: profileRow?.brokerage ?? null,
+    phone: profileRow?.phone ?? null,
+    email: primaryEmail,
+    headshotUrl: profileRow?.headshot_url ?? null,
+    tagline: profileRow?.tagline ?? null,
+    accentColor: profileRow?.accent_color ?? null,
+  };
+
   const { data, error } = await supabase
     .from("submissions")
     .insert({
@@ -91,6 +165,13 @@ export async function submitListingAction(formData: FormData) {
       payment_complete: record.paymentComplete,
       admin_approved: record.adminApproved,
       permission_confirmed: record.permissionConfirmed,
+      photos: uploadedPhotos.map((p, i) => ({
+        url: p.url,
+        key: p.key,
+        ordering: i,
+        contentType: p.contentType,
+      })),
+      listed_by: listedBySnapshot,
     })
     .select("id, status")
     .single();

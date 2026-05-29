@@ -62,8 +62,17 @@ export async function Header() {
                 <span aria-hidden className="mr-1.5">♥</span>
                 Favorites
               </Link>
+              <Link
+                href="/account"
+                className="hidden rounded-full bg-white px-3 py-2 text-sm font-bold text-slate-700 ring-1 ring-slate-200 transition hover:bg-slate-100 sm:inline-flex"
+                aria-label="My account"
+              >
+                Account
+              </Link>
+              {/* Clerk v7 removed afterSignOutUrl from UserButton; the
+                  sign-out destination is configured globally on the
+                  ClerkProvider. Default is "/" which is what we want. */}
               <UserButton
-                afterSignOutUrl="/"
                 appearance={{
                   elements: {
                     avatarBox: "h-9 w-9",
