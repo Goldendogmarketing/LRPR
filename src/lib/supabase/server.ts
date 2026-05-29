@@ -123,7 +123,49 @@ export type SubmissionRow = {
   admin_approved: boolean;
   geocoding_status: string;
   enrichment_status: string;
+  // Geocoding result (Task 6). Null until the address is geocoded.
+  latitude: number | null;
+  longitude: number | null;
+  geocoded_at: string | null;
+  // Immersive payload captured at submission time.
+  photos: SubmissionPhoto[];
+  listed_by: Record<string, unknown>;
   published_at: string | null;
   created_at: string;
+  updated_at: string;
+};
+
+/** Shape of each entry in submissions.photos / published_listings.photos. */
+export type SubmissionPhoto = {
+  url: string;
+  key?: string;
+  ordering?: number;
+  contentType?: string;
+};
+
+/**
+ * Row shape for `published_listings`. Written by the admin publish flow
+ * when a submission reaches publish_ready, read by listings-source to
+ * merge DB listings with the static demo data.
+ *
+ * `listing_data` holds the full immersive-ready Listing object (matches
+ * the `Listing` type in src/data/site.ts). The other columns are
+ * denormalized for querying/indexing.
+ */
+export type PublishedListingRow = {
+  id: string;
+  submission_id: string | null;
+  slug: string;
+  title: string;
+  public_status: string;
+  city: string;
+  county: string;
+  latitude: number | null;
+  longitude: number | null;
+  public_data: Record<string, unknown>;
+  photos: SubmissionPhoto[];
+  listed_by: Record<string, unknown>;
+  listing_data: Record<string, unknown>;
+  published_at: string;
   updated_at: string;
 };

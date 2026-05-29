@@ -93,6 +93,11 @@ create table if not exists submissions (
   admin_approved boolean not null default false,
   geocoding_status text not null default 'not_started',
   enrichment_status text not null default 'not_started',
+  -- Geocoding result (Task 6): populated when the submission address is
+  -- geocoded via the Google Geocoding API. Carried into published_listings.
+  latitude numeric,
+  longitude numeric,
+  geocoded_at timestamptz,
   -- Immersive template payload: photos uploaded at submission time and
   -- the agent block snapshot captured when the submission was created.
   photos jsonb not null default '[]'::jsonb,
@@ -101,6 +106,11 @@ create table if not exists submissions (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- Idempotent column adds for existing deployments.
+alter table submissions add column if not exists latitude numeric;
+alter table submissions add column if not exists longitude numeric;
+alter table submissions add column if not exists geocoded_at timestamptz;
 
 create table if not exists payments (
   id uuid primary key default gen_random_uuid(),
@@ -149,9 +159,16 @@ create table if not exists published_listings (
   -- Immersive template payload (mirrored from submissions at publish time).
   photos jsonb not null default '[]'::jsonb,
   listed_by jsonb not null default '{}'::jsonb,
+  -- Full immersive-ready Listing object (address, price, beds, features,
+  -- photos, listedBy, etc.) so listings-source can hydrate a Listing from
+  -- a single column instead of a wide typed column list.
+  listing_data jsonb not null default '{}'::jsonb,
   published_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- Idempotent column add for existing deployments.
+alter table published_listings add column if not exists listing_data jsonb not null default '{}'::jsonb;
 
 create table if not exists service_provider_profiles (
   id uuid primary key default gen_random_uuid(),
