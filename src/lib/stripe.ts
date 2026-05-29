@@ -24,37 +24,73 @@ export function stripeConfigured(): boolean {
   return Boolean(process.env.STRIPE_SECRET_KEY);
 }
 
+export type Cadence = "monthly" | "annual";
+
 /**
- * Map a paid tier → its Stripe recurring Price ID (from env). Returns null
- * when the price isn't configured yet, so checkout can show a friendly
- * "pricing not set up" message instead of crashing.
+ * Tiers billed as a recurring Stripe subscription (Checkout mode "subscription").
+ * Agent + Vendor are ongoing; FSBO is a one-time per-listing fee (handled at
+ * submission time, not here); Investor is "coming soon"; Free is $0.
  */
-export function priceIdForTier(tier: TierId): string | null {
-  const map: Record<TierId, string | undefined> = {
-    free: undefined,
-    fsbo: process.env.STRIPE_PRICE_FSBO,
-    agent: process.env.STRIPE_PRICE_AGENT,
-    investor: process.env.STRIPE_PRICE_INVESTOR,
-    vendor: process.env.STRIPE_PRICE_VENDOR,
-  };
-  return map[tier] ?? null;
+export const SUBSCRIPTION_TIERS: TierId[] = ["agent", "vendor"];
+
+export function isSubscriptionTier(tier: TierId): boolean {
+  return SUBSCRIPTION_TIERS.includes(tier);
+}
+
+/**
+ * Map a subscription tier + cadence → its Stripe recurring Price ID (from env).
+ * Returns null when not configured yet, so checkout can show a friendly
+ * "pricing not set up" message instead of crashing.
+ *
+ * Env vars (set in Vercel):
+ *   STRIPE_PRICE_AGENT_MONTHLY / STRIPE_PRICE_AGENT_ANNUAL
+ *   STRIPE_PRICE_VENDOR_MONTHLY / STRIPE_PRICE_VENDOR_ANNUAL
+ */
+export function priceIdFor(tier: TierId, cadence: Cadence): string | null {
+  const env = process.env;
+  switch (tier) {
+    case "agent":
+      return (
+        (cadence === "annual"
+          ? env.STRIPE_PRICE_AGENT_ANNUAL
+          : env.STRIPE_PRICE_AGENT_MONTHLY) ?? null
+      );
+    case "vendor":
+      return (
+        (cadence === "annual"
+          ? env.STRIPE_PRICE_VENDOR_ANNUAL
+          : env.STRIPE_PRICE_VENDOR_MONTHLY) ?? null
+      );
+    default:
+      // fsbo (one-time, handled at submission), investor (coming soon), free
+      return null;
+  }
+}
+
+/** True if either cadence has a configured price for this subscription tier. */
+export function hasAnyPrice(tier: TierId): boolean {
+  return Boolean(priceIdFor(tier, "monthly") || priceIdFor(tier, "annual"));
 }
 
 /**
  * Reverse map a Stripe Price ID → tier. Used as a fallback in the webhook
- * if subscription metadata is missing. Returns null if unknown.
+ * when subscription metadata is missing. Checks all configured prices.
  */
 export function tierForPriceId(priceId: string): TierId | null {
-  const entries: [TierId, string | undefined][] = [
-    ["fsbo", process.env.STRIPE_PRICE_FSBO],
-    ["agent", process.env.STRIPE_PRICE_AGENT],
-    ["investor", process.env.STRIPE_PRICE_INVESTOR],
-    ["vendor", process.env.STRIPE_PRICE_VENDOR],
+  const env = process.env;
+  const table: [TierId, (string | undefined)[]][] = [
+    ["agent", [env.STRIPE_PRICE_AGENT_MONTHLY, env.STRIPE_PRICE_AGENT_ANNUAL]],
+    ["vendor", [env.STRIPE_PRICE_VENDOR_MONTHLY, env.STRIPE_PRICE_VENDOR_ANNUAL]],
   ];
-  for (const [tier, id] of entries) {
-    if (id && id === priceId) return tier;
+  for (const [tier, ids] of table) {
+    if (ids.some((id) => id && id === priceId)) return tier;
   }
   return null;
+}
+
+/** Normalize an untrusted cadence string. Defaults to monthly. */
+export function asCadence(value: string | null | undefined): Cadence {
+  return value === "annual" ? "annual" : "monthly";
 }
 
 /** Narrow an untrusted string to a TierId, else null. */

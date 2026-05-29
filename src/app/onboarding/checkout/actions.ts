@@ -4,7 +4,9 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import {
   getStripe,
-  priceIdForTier,
+  priceIdFor,
+  asCadence,
+  isSubscriptionTier,
   siteOrigin,
 } from "@/lib/stripe";
 import {
@@ -29,7 +31,18 @@ export async function createCheckoutSession(formData: FormData) {
   }
   const tier = tierRaw;
 
-  const priceId = priceIdForTier(tier);
+  // Only subscription tiers (Agent, Vendor) use this hosted checkout. FSBO is
+  // a one-time per-listing fee collected at submission time (built separately).
+  if (!isSubscriptionTier(tier)) {
+    redirect(
+      `/onboarding/checkout?tier=${tier}&error=${encodeURIComponent(
+        "This tier isn't a subscription. FSBO listings are paid per-listing at submission.",
+      )}`,
+    );
+  }
+
+  const cadence = asCadence(String(formData.get("cadence") ?? "monthly"));
+  const priceId = priceIdFor(tier, cadence);
   if (!priceId) {
     redirect(
       `/onboarding/checkout?tier=${tier}&error=${encodeURIComponent(
@@ -55,7 +68,7 @@ export async function createCheckoutSession(formData: FormData) {
   });
 
   const origin = siteOrigin();
-  const metadata = { profileId: profile.id, clerkUserId: userId, tier };
+  const metadata = { profileId: profile.id, clerkUserId: userId, tier, cadence };
 
   const session = await getStripe()
     .checkout.sessions.create({
