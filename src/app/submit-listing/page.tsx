@@ -204,6 +204,24 @@ export default async function SubmitListingPage({ searchParams }: SubmitListingP
             </div>
           </div>
 
+          {/* Permission attestation. This is the publish gate: a submission
+              cannot reach "published" until permission_confirmed is true.
+              Required, so the form won't submit without it. */}
+          <label className="mt-6 flex items-start gap-3 rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200">
+            <input
+              type="checkbox"
+              name="permissionConfirmed"
+              required
+              className="mt-0.5 h-5 w-5 shrink-0 rounded border-slate-300 text-cyan-700 focus:ring-cyan-700"
+            />
+            <span className="text-sm font-semibold leading-6 text-slate-700">
+              I confirm I own this property, or have written authorization from
+              the owner or listing agent, to advertise it (and the uploaded
+              photos) on Lake Region Property Resource.{" "}
+              <span className="text-rose-600">*</span>
+            </span>
+          </label>
+
           <button type="submit" className="mt-6 w-full rounded-2xl bg-slate-950 px-5 py-4 text-sm font-black text-white shadow-lg shadow-slate-900/15">Submit property for review</button>
           <p className="mt-3 text-center text-xs font-semibold text-slate-500">Saved to Supabase. Clerk account validation and Resend admin notifications wire in next sprints.</p>
         </form>

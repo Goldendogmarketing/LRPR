@@ -58,6 +58,11 @@ export async function submitListingAction(formData: FormData) {
     ...payload,
     // Trust Clerk's authentication as the "account_validated" gate signal.
     accountValidated: true,
+    // Required permission checkbox on the form. This satisfies the
+    // permission_confirmed publish gate so admin approval can reach
+    // publish_ready. An unchecked/absent value leaves it false, which
+    // correctly blocks publishing.
+    permissionConfirmed: formData.get("permissionConfirmed") === "on",
   });
 
   if (!result.ok) {
