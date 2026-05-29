@@ -20,6 +20,7 @@ import {
 } from "@/lib/supabase/storage";
 import { canSubmitListings } from "@/lib/tiers";
 import { geocodeAddress } from "@/lib/geocoding";
+import { notify, buildSubmissionAdminEmail } from "@/lib/notifications";
 
 function toNumberOrNull(value: string): number | null {
   if (!value) return null;
@@ -199,8 +200,28 @@ export async function submitListingAction(formData: FormData) {
     );
   }
 
-  // TODO (next sprint): queue Resend admin notification using `notification`,
-  // and queue Stripe checkout when paid lanes return.
+  // Send admin notification email about the new submission.
+  try {
+    const adminEmail =
+      process.env.LRPR_ADMIN_EMAIL || "admin@lrpr.local";
+    const email = buildSubmissionAdminEmail({
+      submissionId: data.id,
+      address: record.propertyAddress,
+      contactName: record.contactName || fullName || "Unknown",
+      submissionType: record.submissionType,
+    });
+    await notify(supabase, {
+      submissionId: data.id,
+      to: adminEmail,
+      ...email,
+      templateKey: "property_submission.created",
+      payload: { submissionId: data.id, address: record.propertyAddress },
+    });
+  } catch (notifyErr) {
+    // Defense in depth — notify() already never throws, but guard here too.
+    console.error("[submitListing] Unexpected error sending admin notification:", notifyErr);
+  }
+
   console.info("LRPR submission persisted", {
     submissionId: data.id,
     status: data.status,

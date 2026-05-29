@@ -10,6 +10,8 @@ import {
   type SubmissionRow,
 } from "@/lib/supabase/server";
 import { slugify, type Listing, type ListedBy, type ListingType, type ListingStatus } from "@/data/site";
+import { enrichAddress } from "@/lib/address-enrichment";
+import { notify, buildDecisionEmail } from "@/lib/notifications";
 
 /**
  * Translate the workflow's abstract status into a real DB enum value.
@@ -200,6 +202,13 @@ export async function adminDecisionAction(formData: FormData) {
     try {
       const sub = submission as unknown as SubmissionRow;
 
+      // Enrich the address with free public-data APIs before building the listing.
+      const facts = await enrichAddress({
+        latitude: sub.latitude,
+        longitude: sub.longitude,
+        address: sub.address_line ?? "",
+      });
+
       // Derive the slug — id suffix avoids slug collisions across cities.
       const listingSlug = slugify(
         `${sub.address_line ?? "listing"}-${sub.city ?? ""}-${sub.id.slice(0, 8)}`,
@@ -269,6 +278,7 @@ export async function adminDecisionAction(formData: FormData) {
         heroPhoto,
         photos: photoUrls,
         listedBy: (sub.listed_by as unknown as ListedBy) ?? undefined,
+        publicDataFacts: facts,
       };
 
       const { error: upsertErr } = await supabase
@@ -286,6 +296,7 @@ export async function adminDecisionAction(formData: FormData) {
             photos: sub.photos ?? [],
             listed_by: sub.listed_by ?? {},
             listing_data: listing,
+            public_data: { facts },
             published_at: new Date().toISOString(),
           },
           { onConflict: "slug" },
@@ -296,6 +307,14 @@ export async function adminDecisionAction(formData: FormData) {
       } else {
         console.info("[admin] Listing published to published_listings:", listingSlug);
       }
+
+      // Update enrichment status on the submission row.
+      await supabase
+        .from("submissions")
+        .update({
+          enrichment_status: facts.length > 0 ? "succeeded" : "failed",
+        })
+        .eq("id", sub.id);
     } catch (publishErr) {
       // Non-fatal — log and continue. The submission update + redirect still runs.
       console.error("[admin] Unexpected error publishing listing:", publishErr);
@@ -304,6 +323,29 @@ export async function adminDecisionAction(formData: FormData) {
 
   // Refresh the admin queue so the changed row reflects new status immediately.
   revalidatePath("/admin");
+
+  // Send decision email to the submitter.
+  try {
+    const sub = submission as unknown as SubmissionRow;
+    const contactEmail = sub.contact_email ?? null;
+    if (contactEmail) {
+      const email = buildDecisionEmail({
+        decision: workflow.decision.decision,
+        address: sub.address_line ?? submission!.id,
+        notes: workflow.decision.notes,
+      });
+      await notify(supabase, {
+        submissionId: submission!.id,
+        to: contactEmail,
+        ...email,
+        templateKey: `property_submission.${workflow.decision.decision}`,
+        payload: { decision: workflow.decision.decision },
+      });
+    }
+  } catch (decisionEmailErr) {
+    // Non-fatal — never break the redirect.
+    console.error("[admin] Unexpected error sending decision email:", decisionEmailErr);
+  }
 
   redirect(
     `/admin?decision=${workflow.decision.decision}&submission=${encodeURIComponent(submission!.id)}&status=${toStatus}`,

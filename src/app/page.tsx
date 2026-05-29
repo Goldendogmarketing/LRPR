@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Header } from "@/components/Header";
 import { HomeMap } from "@/components/HomeMap";
 import { InternalLinkHub } from "@/components/InternalLinkHub";
+import { SearchHero } from "@/components/SearchHero";
 import { listings, resources } from "@/data/site";
 
 const quickFilters = [
@@ -71,52 +72,11 @@ export default function Home() {
     <main className="min-h-screen bg-[#f7f4ed] text-slate-950">
       <Header />
 
+      <SearchHero />
+
       <section className="mx-auto max-w-[1440px] px-3 py-5 sm:px-6 lg:px-8">
         <div className="overflow-hidden rounded-[2rem] border border-white bg-white shadow-[0_20px_80px_rgba(15,23,42,0.08)]">
-          <div className="grid min-h-[620px] lg:grid-cols-[390px_1fr]">
-            <aside className="relative z-10 border-b border-slate-200 bg-white p-5 lg:border-b-0 lg:border-r lg:p-7">
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-700">Lake Region search</p>
-              <h1 className="mt-3 text-4xl font-black tracking-[-0.04em] text-slate-950 sm:text-5xl">Find local property with verified Lake Region context.</h1>
-              <p className="mt-4 text-sm leading-7 text-slate-600">Homes, rentals, land, public data, county links, and trusted service pros across Keystone Heights, Starke, Melrose, Hawthorne, Interlachen, Florahome, and Hampton.</p>
-
-              <div className="mt-6 space-y-5 rounded-[1.5rem] bg-[#f8faf9] p-4 ring-1 ring-slate-200">
-                <label className="block">
-                  <span className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Location</span>
-                  <input className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-cyan-700" placeholder="City, address, ZIP, lake, or county" />
-                </label>
-
-                <div>
-                  <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Property type</p>
-                  <div className="mt-2 grid grid-cols-3 gap-2 text-xs font-black">
-                    {['All', 'House', 'Lakefront', 'Land', 'Rental', 'Commercial'].map((type, index) => (
-                      <button className={`rounded-xl px-3 py-2 ${index === 0 ? 'bg-slate-950 text-white' : 'bg-white text-slate-700 ring-1 ring-slate-200'}`} key={type}>{type}</button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Transaction</p>
-                  <div className="mt-2 flex gap-3 text-sm font-bold text-slate-700">
-                    <label className="flex items-center gap-2"><input type="checkbox" defaultChecked /> For Sale</label>
-                    <label className="flex items-center gap-2"><input type="checkbox" defaultChecked /> For Rent</label>
-                    <label className="flex items-center gap-2"><input type="checkbox" /> Sold</label>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex items-center justify-between text-xs font-black uppercase tracking-[0.16em] text-slate-500"><span>Price range</span><span>$100K — $1.5M+</span></div>
-                  <div className="mt-3 h-2 rounded-full bg-slate-200"><div className="h-2 w-3/4 rounded-full bg-cyan-700" /></div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <select className="rounded-2xl border border-slate-200 bg-white px-3 py-3 text-sm font-bold text-slate-700"><option>Beds: Any</option></select>
-                  <select className="rounded-2xl border border-slate-200 bg-white px-3 py-3 text-sm font-bold text-slate-700"><option>Baths: Any</option></select>
-                </div>
-
-                <button className="w-full rounded-2xl bg-slate-950 px-5 py-4 text-sm font-black text-white shadow-lg shadow-slate-900/15">Apply Filters</button>
-              </div>
-            </aside>
-
+          <div className="min-h-[420px]">
             <HomeMap listings={listings} />
           </div>
         </div>

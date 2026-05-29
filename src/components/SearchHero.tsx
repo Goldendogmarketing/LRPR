@@ -22,14 +22,14 @@ export function SearchHero() {
           <h1 className="max-w-3xl text-4xl font-black tracking-[-0.05em] text-slate-950 sm:text-6xl lg:text-7xl">Find property and trusted contacts across the Lake Region.</h1>
           <p className="mt-5 max-w-2xl text-base leading-8 text-slate-600 sm:text-lg">Growth-driven, flat local architecture for homes, rentals, land, resources, service pros, city pages, county pages, and address-level map data.</p>
 
-          <div className="mt-8 rounded-[2rem] border border-white/80 bg-white/90 p-3 shadow-2xl shadow-slate-900/10 backdrop-blur">
+          <form action="/search" method="get" className="mt-8 rounded-[2rem] border border-white/80 bg-white/90 p-3 shadow-2xl shadow-slate-900/10 backdrop-blur">
             <label htmlFor="address-search" className="sr-only">Search an address in the LRPR database</label>
             <div className="flex flex-col gap-3 sm:flex-row">
               <div className="relative flex-1">
                 <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">⌕</span>
-                <input id="address-search" className="h-14 w-full rounded-2xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-base font-semibold outline-none transition placeholder:text-slate-400 focus:border-cyan-700 focus:bg-white focus:ring-4 focus:ring-cyan-100" placeholder="Type an address — active, pending, sold, archived" value={query} onChange={(event) => setQuery(event.target.value)} />
+                <input id="address-search" name="q" className="h-14 w-full rounded-2xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-base font-semibold outline-none transition placeholder:text-slate-400 focus:border-cyan-700 focus:bg-white focus:ring-4 focus:ring-cyan-100" placeholder="Type an address — active, pending, sold, archived" value={query} onChange={(event) => setQuery(event.target.value)} />
               </div>
-              <button className="h-14 rounded-2xl bg-slate-950 px-6 text-sm font-black text-white shadow-lg shadow-slate-950/20 transition hover:bg-cyan-950">Search</button>
+              <button type="submit" className="h-14 rounded-2xl bg-slate-950 px-6 text-sm font-black text-white shadow-lg shadow-slate-950/20 transition hover:bg-cyan-950">Search</button>
             </div>
 
             <div className="mt-3 overflow-hidden rounded-2xl border border-slate-100 bg-white">
@@ -40,7 +40,7 @@ export function SearchHero() {
                 </Link>
               )) : <div className="px-4 py-4 text-sm font-semibold text-slate-500">No matching address in the local LRPR database.</div>}
             </div>
-          </div>
+          </form>
         </div>
 
         <div className="relative z-10 min-h-[420px] rounded-[2.5rem] border border-white/70 bg-slate-950 p-4 shadow-2xl shadow-slate-900/20 sm:min-h-[520px]">
