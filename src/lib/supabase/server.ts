@@ -15,9 +15,7 @@ export function createSupabaseServerClient(): SupabaseClient {
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!url || !serviceRoleKey) {
-    throw new Error(
-      "Missing Supabase server env vars: NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required.",
-    );
+    return createUnconfiguredStub();
   }
 
   return createClient(url, serviceRoleKey, {
@@ -26,6 +24,33 @@ export function createSupabaseServerClient(): SupabaseClient {
       persistSession: false,
     },
   });
+}
+
+/**
+ * Returned when Supabase env vars are absent (e.g. design-preview deploys
+ * with no database yet). Every query chain (`.from().select().eq()...`) and
+ * its terminators resolve to an empty `{ data: null, error }` result instead
+ * of throwing at construction time. Callers already treat a missing/errored
+ * result as "no rows" and fall back to static demo data, so public pages
+ * prerender cleanly and the site never hard-fails without a DB.
+ */
+function createUnconfiguredStub(): SupabaseClient {
+  const result = {
+    data: null,
+    error: { message: "Supabase env vars not configured" },
+  };
+  const proxy: unknown = new Proxy(function () {}, {
+    get(_target, prop) {
+      // `await <query>` checks for a `then` — resolve to the empty result.
+      if (prop === "then") {
+        return (resolve: (value: typeof result) => void) => resolve(result);
+      }
+      // Any other property (from/select/eq/order/maybeSingle/…) is a
+      // chainable method returning the same proxy.
+      return () => proxy;
+    },
+  });
+  return proxy as SupabaseClient;
 }
 
 /**

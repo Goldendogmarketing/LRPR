@@ -12,7 +12,7 @@ const gradients = [
 ];
 
 function isPromoted(listing: Listing): boolean {
-  return listing.presentationStyle === "immersive" || Boolean(listing.immersiveEnabled);
+  return listing.presentationStyle === "immersive" || Boolean(listing.listedBy?.immersiveEnabled);
 }
 
 function CarouselCard({ listing, index }: { listing: Listing; index: number }) {
