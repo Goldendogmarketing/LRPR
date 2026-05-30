@@ -1,7 +1,10 @@
+import { currentUser } from "@clerk/nextjs/server";
 import { Header } from "@/components/Header";
 import { InternalLinkHub } from "@/components/InternalLinkHub";
+import { VendorFavoriteButton } from "@/components/VendorFavoriteButton";
 import { cities, servicePros } from "@/data/site";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getVendorFavoriteIds } from "@/lib/account-data";
 
 export const metadata = {
   title: "Lake Region Service Pros | Plumbing, Electrical, HVAC, Landscaping",
@@ -34,6 +37,10 @@ export default async function ServiceProsPage() {
     .order("sponsored", { ascending: false });
 
   const providers: ServiceProviderRow[] = rows ?? [];
+
+  const user = await currentUser();
+  const isSignedIn = Boolean(user);
+  const savedVendorIds = await getVendorFavoriteIds(supabase, user?.id);
 
   // Group by category
   const grouped: Record<string, ServiceProviderRow[]> = {};
@@ -85,7 +92,7 @@ export default async function ServiceProsPage() {
                           <h3 className="text-base font-black text-slate-900">
                             {p.business_name ?? "Provider"}
                           </h3>
-                          <div className="flex shrink-0 flex-wrap gap-1">
+                          <div className="flex shrink-0 items-center gap-1">
                             {p.sponsored && (
                               <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-black text-amber-800">
                                 Sponsored
@@ -96,6 +103,14 @@ export default async function ServiceProsPage() {
                                 Verified
                               </span>
                             )}
+                            <VendorFavoriteButton
+                              vendorId={p.id}
+                              vendorName={p.business_name}
+                              vendorCategory={p.category}
+                              isSaved={savedVendorIds.has(p.id)}
+                              isSignedIn={isSignedIn}
+                              redirectTo="/service-pros"
+                            />
                           </div>
                         </div>
                         {(p.city || p.county) && (

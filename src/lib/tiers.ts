@@ -20,6 +20,12 @@ export type TierDefinition = {
   features: string[];
   /** Optional accent color hint for UI cards. */
   accent: "slate" | "cyan" | "emerald" | "amber" | "rose";
+  /**
+   * When true the tier is not offered in the onboarding picker (and is
+   * rejected by setTierAction). Used to park a tier until its value prop
+   * is ready — currently `investor`.
+   */
+  hidden?: boolean;
 };
 
 export const TIERS: Record<TierId, TierDefinition> = {
@@ -86,6 +92,8 @@ export const TIERS: Record<TierId, TierDefinition> = {
       "ROI and cap-rate calculators",
     ],
     accent: "amber",
+    // Parked until the investor value proposition is finalized.
+    hidden: true,
   },
   vendor: {
     id: "vendor",
@@ -109,6 +117,32 @@ export const TIER_IDS = Object.keys(TIERS) as TierId[];
 export const PAID_TIER_IDS: TierId[] = TIER_IDS.filter(
   (id) => TIERS[id].requiresPayment,
 );
+
+/** Tiers actually offered in the onboarding picker (excludes hidden ones). */
+export const VISIBLE_TIER_IDS: TierId[] = TIER_IDS.filter(
+  (id) => !TIERS[id].hidden,
+);
+
+/**
+ * The user-facing account "type" that drives which sections render on the
+ * /account dashboard. Distinct from the granular tier `role`:
+ *   - admin       → Clerk publicMetadata.role === "admin"
+ *   - professional→ agent or vendor (paid, listing/profile managing)
+ *   - fsbo        → for-sale-by-owner (free→paid upgrade)
+ *   - public      → free (and anything else)
+ * `investor` is parked, so it currently falls through to "public".
+ */
+export type AccountType = "admin" | "professional" | "fsbo" | "public";
+
+export function deriveAccountType(args: {
+  role: string | null | undefined;
+  isAdmin: boolean;
+}): AccountType {
+  if (args.isAdmin) return "admin";
+  if (args.role === "agent" || args.role === "vendor") return "professional";
+  if (args.role === "fsbo") return "fsbo";
+  return "public";
+}
 
 /**
  * Tiers permitted to submit property listings via /submit-listing.

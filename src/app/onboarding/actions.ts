@@ -23,6 +23,13 @@ export async function setTierAction(formData: FormData) {
   const tierId = rawTier;
   const tier = TIERS[tierId];
 
+  // Hidden tiers (e.g. investor) aren't offered yet — reject direct posts.
+  if (tier.hidden) {
+    redirect(
+      `/onboarding?error=${encodeURIComponent("That account type isn't available yet.")}`,
+    );
+  }
+
   const user = await currentUser();
   const primaryEmail =
     user?.emailAddresses.find((e) => e.id === user.primaryEmailAddressId)

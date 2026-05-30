@@ -1,7 +1,7 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { Header } from "@/components/Header";
-import { TIERS, TIER_IDS, TIER_ACCENT_CLASSES } from "@/lib/tiers";
+import { TIERS, VISIBLE_TIER_IDS, TIER_ACCENT_CLASSES } from "@/lib/tiers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { setTierAction } from "./actions";
 
@@ -72,7 +72,7 @@ export default async function OnboardingPage({
         ) : null}
 
         <div className="mt-10 grid gap-5 lg:grid-cols-2 xl:grid-cols-3">
-          {TIER_IDS.map((tierId) => {
+          {VISIBLE_TIER_IDS.map((tierId) => {
             const tier = TIERS[tierId];
             const accent = TIER_ACCENT_CLASSES[tier.accent];
             return (
