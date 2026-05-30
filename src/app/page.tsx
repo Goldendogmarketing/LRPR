@@ -3,16 +3,7 @@ import { Header } from "@/components/Header";
 import { HomeHero } from "@/components/HomeHero";
 import { ListingsCarousel } from "@/components/ListingsCarousel";
 import { InternalLinkHub } from "@/components/InternalLinkHub";
-import { listings, resources } from "@/data/site";
-
-const quickFilters = [
-  ["Lakefront Homes", "Lake Geneva, Lake Santa Fe, Brooklyn Lake", "/for-sale"],
-  ["Land & Acreage", "Rural tracts, parcels, and build sites", "/for-sale"],
-  ["Homes for Rent", "Keystone Heights to Interlachen rentals", "/for-rent"],
-  ["Parcel Lookup", "County appraiser and cadastral links", "/data-sources"],
-  ["Flood Map Resources", "FEMA NFHL lookup-ready context", "/resources"],
-  ["Recently Sold / Archived", "Local property history pages", "/for-sale"],
-];
+import { listings } from "@/data/site";
 
 const resourceCards = [
   ["Buying Guide", "Local due-diligence checklist for Lake Region buyers", "/resources"],
@@ -57,22 +48,10 @@ export default function Home() {
         <ListingsCarousel listings={listings} />
       </section>
 
-      <section className="mx-auto grid max-w-[1440px] gap-6 px-4 py-6 sm:px-6 lg:grid-cols-2 lg:px-8">
-        <div className="rounded-[2rem] bg-white p-6 shadow-[0_10px_35px_rgba(15,23,42,0.06)] ring-1 ring-slate-200">
-          <div className="mb-5 flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-2xl bg-cyan-50 text-cyan-800">⌁</span><h2 className="text-xl font-black">Quick Filters</h2></div>
-          <div className="divide-y divide-slate-100">
-            {quickFilters.map(([title, copy, href]) => (
-              <Link className="flex items-center justify-between gap-4 py-4" href={href} key={title}>
-                <span><span className="block text-sm font-black text-slate-900">{title}</span><span className="mt-1 block text-xs font-semibold text-slate-500">{copy}</span></span>
-                <span className="text-xl text-slate-400">›</span>
-              </Link>
-            ))}
-          </div>
-        </div>
-
+      <section className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6 lg:px-8">
         <div className="rounded-[2rem] bg-white p-6 shadow-[0_10px_35px_rgba(15,23,42,0.06)] ring-1 ring-slate-200">
           <div className="mb-5 flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-2xl bg-emerald-50 text-emerald-800">▣</span><h2 className="text-xl font-black">Resources</h2></div>
-          <div className="divide-y divide-slate-100">
+          <div className="grid gap-x-8 divide-y divide-slate-100 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-3">
             {resourceCards.map(([title, copy, href]) => (
               <Link className="flex items-center justify-between gap-4 py-4" href={href} key={title}>
                 <span><span className="block text-sm font-black text-slate-900">{title}</span><span className="mt-1 block text-xs font-semibold text-slate-500">{copy}</span></span>
@@ -101,16 +80,6 @@ export default function Home() {
                 <p className="mt-2 text-xs font-semibold leading-5 text-slate-500">{copy}</p>
               </Link>
             ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-[1440px] px-4 py-7 sm:px-6 lg:px-8">
-        <div className="rounded-[2.25rem] bg-slate-950 p-6 text-white sm:p-8">
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-200">Official local data layer</p>
-          <h2 className="mt-3 max-w-3xl text-3xl font-black tracking-[-0.03em] sm:text-4xl">Every page gets useful context from public sources, not duplicate portal copy.</h2>
-          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {resources.slice(0, 8).map((resource) => <Link className="rounded-2xl bg-white/10 p-4 text-sm font-bold text-white ring-1 ring-white/10" href="/resources" key={resource}>{resource}</Link>)}
           </div>
         </div>
       </section>
