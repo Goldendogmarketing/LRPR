@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { Header } from "@/components/Header";
-import { HomeMap } from "@/components/HomeMap";
+import { HomeHero } from "@/components/HomeHero";
+import { ListingsCarousel } from "@/components/ListingsCarousel";
 import { InternalLinkHub } from "@/components/InternalLinkHub";
-import { SearchHero } from "@/components/SearchHero";
 import { listings, resources } from "@/data/site";
 
 const quickFilters = [
@@ -37,64 +37,24 @@ const vendorCategories = [
   ["Surveyors", "Boundaries, lots, and acreage clarity"],
 ];
 
-function MiniListingCard({ listing, index }: { listing: (typeof listings)[number]; index: number }) {
-  const gradients = [
-    "from-cyan-900 via-cyan-700 to-emerald-300",
-    "from-slate-900 via-blue-700 to-amber-200",
-    "from-stone-900 via-emerald-700 to-lime-200",
-    "from-zinc-900 via-slate-600 to-orange-200",
-  ];
-
-  return (
-    <Link href={`/listings/${listing.slug}`} className="group overflow-hidden rounded-[1.35rem] bg-white shadow-[0_10px_35px_rgba(15,23,42,0.08)] ring-1 ring-slate-200 transition hover:-translate-y-1 hover:shadow-[0_16px_45px_rgba(15,23,42,0.14)]">
-      <div className={`relative h-36 bg-gradient-to-br ${gradients[index % gradients.length]}`}>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.35),transparent_26%),linear-gradient(135deg,transparent_35%,rgba(255,255,255,0.18)_35%,rgba(255,255,255,0.18)_42%,transparent_42%)]" />
-        <span className="absolute left-3 top-3 rounded-full bg-white px-3 py-1 text-[11px] font-black uppercase text-slate-900 shadow-sm">{listing.status}</span>
-        <span className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white/90 text-slate-700 shadow-sm">♡</span>
-        <div className="absolute bottom-3 left-3 rounded-2xl bg-white/90 px-3 py-2 text-xs font-black text-slate-900 shadow-sm">{listing.category}</div>
-      </div>
-      <div className="p-4">
-        <p className="text-lg font-black tracking-tight text-slate-950">{listing.price}</p>
-        <p className="mt-1 text-sm font-bold text-slate-800">{listing.address}</p>
-        <p className="mt-1 text-xs font-semibold text-slate-500">{listing.city}, {listing.state} · {listing.county}</p>
-        <div className="mt-4 flex items-center gap-4 text-xs font-bold text-slate-600">
-          <span>{listing.beds ?? "—"} bd</span>
-          <span>{listing.baths ?? "—"} ba</span>
-          <span>Map-ready</span>
-        </div>
-      </div>
-    </Link>
-  );
-}
-
 export default function Home() {
   return (
     <main className="min-h-screen bg-[#f7f4ed] text-slate-950">
       <Header />
 
-      <SearchHero />
-
-      <section className="mx-auto max-w-[1440px] px-3 py-5 sm:px-6 lg:px-8">
-        <div className="overflow-hidden rounded-[2rem] border border-white bg-white shadow-[0_20px_80px_rgba(15,23,42,0.08)]">
-          <div className="min-h-[420px]">
-            <HomeMap listings={listings} />
-          </div>
-        </div>
-      </section>
+      <HomeHero />
 
       <section className="mx-auto max-w-[1440px] px-4 py-7 sm:px-6 lg:px-8">
-        <div className="mb-5 flex items-end justify-between gap-4">
-          <div>
-            <p className="text-sm font-black text-orange-500">🔥 New & local listings</p>
-            <h2 className="mt-1 text-3xl font-black tracking-[-0.03em] text-slate-950">Approved Lake Region records, not scraped feed noise.</h2>
-            <p className="mt-2 text-sm text-slate-600">Demo records shown for design; real inventory will be owner, agent, manager, or LRPR verified.</p>
-          </div>
-          <Link href="/for-sale" className="hidden text-sm font-black text-cyan-800 sm:block">View all listings →</Link>
-          <Link href="/submit-listing" className="hidden rounded-full bg-slate-950 px-4 py-2 text-sm font-black text-white sm:block">Submit listing</Link>
+        <div className="mb-5 flex items-center justify-between gap-4">
+          <h2 className="text-2xl font-black tracking-[-0.03em] text-slate-950 sm:text-3xl">New &amp; Local Listings</h2>
+          <Link
+            href="/for-sale"
+            className="shrink-0 rounded-full bg-slate-950 px-4 py-2 text-sm font-black text-white shadow-sm transition hover:bg-slate-800"
+          >
+            View all listings →
+          </Link>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {listings.slice(0, 4).map((listing, index) => <MiniListingCard index={index} listing={listing} key={listing.id} />)}
-        </div>
+        <ListingsCarousel listings={listings} />
       </section>
 
       <section className="mx-auto grid max-w-[1440px] gap-6 px-4 py-6 sm:px-6 lg:grid-cols-2 lg:px-8">
