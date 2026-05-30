@@ -279,6 +279,8 @@ export async function adminDecisionAction(formData: FormData) {
         photos: photoUrls,
         listedBy: (sub.listed_by as unknown as ListedBy) ?? undefined,
         publicDataFacts: facts,
+        // FSBO paid immersive upgrade forces the immersive presentation.
+        presentationStyle: sub.immersive_upgrade ? "immersive" : undefined,
       };
 
       const { error: upsertErr } = await supabase

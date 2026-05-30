@@ -109,6 +109,9 @@ export async function submitListingAction(formData: FormData) {
   // let the listing through free so FSBO isn't blocked during setup.
   const requiresListingPayment =
     profile.role === "fsbo" && !isAdmin && listingFeeConfigured();
+  // FSBO immersive upgrade ($450 vs $350). Drives the listing fee charged and
+  // the published presentation style.
+  const immersiveUpgrade = formData.get("immersiveUpgrade") === "1";
 
   // Upload photos before inserting the submission row so the row carries
   // the final URLs from the jump. If any photo fails validation, surface
@@ -192,6 +195,7 @@ export async function submitListingAction(formData: FormData) {
         contentType: p.contentType,
       })),
       listed_by: listedBySnapshot,
+      immersive_upgrade: requiresListingPayment ? immersiveUpgrade : false,
       geocoding_status: geo.ok ? "succeeded" : "failed",
       latitude: geo.ok ? geo.latitude : null,
       longitude: geo.ok ? geo.longitude : null,
@@ -251,6 +255,7 @@ export async function submitListingAction(formData: FormData) {
       submissionId: data.id,
       profileId: profile.id,
       email: primaryEmail,
+      upgraded: immersiveUpgrade,
     });
     if (url) {
       redirect(url);
@@ -296,12 +301,13 @@ export async function retryListingPayment(formData: FormData) {
   // Ownership + status check.
   const { data: submission } = await supabase
     .from("submissions")
-    .select("id, submitter_profile_id, payment_complete")
+    .select("id, submitter_profile_id, payment_complete, immersive_upgrade")
     .eq("id", submissionId)
     .maybeSingle<{
       id: string;
       submitter_profile_id: string | null;
       payment_complete: boolean;
+      immersive_upgrade: boolean;
     }>();
 
   if (
@@ -316,6 +322,7 @@ export async function retryListingPayment(formData: FormData) {
     submissionId,
     profileId: profile.id,
     email: primaryEmail,
+    upgraded: submission.immersive_upgrade,
   });
   if (url) redirect(url);
 

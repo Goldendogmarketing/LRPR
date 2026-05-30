@@ -109,6 +109,8 @@ create table if not exists submissions (
   -- the agent block snapshot captured when the submission was created.
   photos jsonb not null default '[]'::jsonb,
   listed_by jsonb not null default '{}'::jsonb,
+  -- FSBO paid upgrade: when true the published listing renders immersive.
+  immersive_upgrade boolean not null default false,
   published_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -118,6 +120,7 @@ create table if not exists submissions (
 alter table submissions add column if not exists latitude numeric;
 alter table submissions add column if not exists longitude numeric;
 alter table submissions add column if not exists geocoded_at timestamptz;
+alter table submissions add column if not exists immersive_upgrade boolean not null default false;
 
 create table if not exists payments (
   id uuid primary key default gen_random_uuid(),

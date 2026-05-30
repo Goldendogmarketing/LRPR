@@ -2,16 +2,22 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { getStripe, siteOrigin } from "@/lib/stripe";
 
 /**
- * One-time Stripe Price ID for an FSBO listing fee (set in env). FSBO users
- * join free and pay this once per listing at submission time.
+ * One-time Stripe Price ID for an FSBO listing fee (set in env). Two tiers:
+ *   standard ($350) -> classic presentation
+ *   upgraded ($450) -> immersive presentation
+ * FSBO users join free and pay this once per listing at submission time.
  */
-export function fsboListingPriceId(): string | null {
-  return process.env.STRIPE_PRICE_FSBO_LISTING ?? null;
+export function fsboListingPriceId(upgraded: boolean): string | null {
+  return (
+    (upgraded
+      ? process.env.STRIPE_PRICE_FSBO_UPGRADED
+      : process.env.STRIPE_PRICE_FSBO_STANDARD) ?? null
+  );
 }
 
-/** True when the FSBO per-listing fee is configured. */
+/** True when at least the standard FSBO listing fee is configured. */
 export function listingFeeConfigured(): boolean {
-  return Boolean(fsboListingPriceId());
+  return Boolean(process.env.STRIPE_PRICE_FSBO_STANDARD);
 }
 
 /**
@@ -25,22 +31,30 @@ export function listingFeeConfigured(): boolean {
  */
 export async function createListingCheckoutSession(
   supabase: SupabaseClient,
-  args: { submissionId: string; profileId: string; email?: string },
+  args: {
+    submissionId: string;
+    profileId: string;
+    email?: string;
+    upgraded: boolean;
+  },
 ): Promise<string | null> {
-  const priceId = fsboListingPriceId();
-  if (!priceId) return null;
+  const priceId = fsboListingPriceId(args.upgraded);
+  // Fall back to standard if the upgraded price isn't configured yet.
+  const effectivePriceId = priceId ?? fsboListingPriceId(false);
+  if (!effectivePriceId) return null;
 
   const origin = siteOrigin();
   const metadata = {
     submissionId: args.submissionId,
     profileId: args.profileId,
     kind: "listing_fee",
+    upgraded: args.upgraded ? "1" : "0",
   };
 
   const session = await getStripe()
     .checkout.sessions.create({
       mode: "payment",
-      line_items: [{ price: priceId, quantity: 1 }],
+      line_items: [{ price: effectivePriceId, quantity: 1 }],
       customer_email: args.email,
       client_reference_id: args.submissionId,
       metadata,

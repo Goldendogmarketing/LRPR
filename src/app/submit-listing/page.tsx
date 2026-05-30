@@ -10,6 +10,7 @@ import {
   canSubmitListings,
   type TierId,
 } from "@/lib/tiers";
+import { listingFeeConfigured } from "@/lib/listing-payments";
 import { submitListingAction, retryListingPayment } from "./actions";
 
 const sourceTypes = [
@@ -87,6 +88,10 @@ export default async function SubmitListingPage({ searchParams }: SubmitListingP
   if (!profile?.tier_selected_at) {
     redirect("/onboarding");
   }
+
+  // FSBO pays per listing and can choose the immersive upgrade. Only show the
+  // paid selector when the fee is actually configured.
+  const showFsboListingTier = profile.role === "fsbo" && !isAdmin && listingFeeConfigured();
 
   if (!canSubmitListings({ profileRole: profile.role, isAdmin })) {
     const currentTier = profile.role in TIERS ? TIERS[profile.role as TierId] : null;
@@ -235,6 +240,41 @@ export default async function SubmitListingPage({ searchParams }: SubmitListingP
               />
             </div>
           </div>
+
+          {/* FSBO listing tier — standard vs immersive upgrade. Only shown for
+              FSBO submitters; the choice drives the one-time fee + presentation. */}
+          {showFsboListingTier ? (
+            <fieldset className="mt-6 rounded-2xl bg-cyan-50/60 p-4 ring-1 ring-cyan-100">
+              <legend className="px-1 text-sm font-black text-slate-800">
+                Listing package (one-time fee)
+              </legend>
+              <p className="mt-1 text-xs leading-5 text-slate-600">
+                You&apos;ll pay this once at checkout after submitting. Admin
+                reviews before it publishes.
+              </p>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <label className="flex cursor-pointer flex-col rounded-2xl bg-white p-4 ring-1 ring-slate-200 has-[:checked]:ring-2 has-[:checked]:ring-slate-900">
+                  <span className="flex items-center gap-2">
+                    <input type="radio" name="immersiveUpgrade" value="0" defaultChecked />
+                    <span className="font-black text-slate-900">Standard — $350</span>
+                  </span>
+                  <span className="mt-2 text-xs leading-5 text-slate-600">
+                    Classic listing page with photos, map, and public-data facts.
+                  </span>
+                </label>
+                <label className="flex cursor-pointer flex-col rounded-2xl bg-white p-4 ring-1 ring-slate-200 has-[:checked]:ring-2 has-[:checked]:ring-slate-900">
+                  <span className="flex items-center gap-2">
+                    <input type="radio" name="immersiveUpgrade" value="1" />
+                    <span className="font-black text-slate-900">Immersive upgrade — $450</span>
+                  </span>
+                  <span className="mt-2 text-xs leading-5 text-slate-600">
+                    The cinematic black/gold parallax presentation — hero, scrolling
+                    feature reel, mortgage estimator, branded agent card.
+                  </span>
+                </label>
+              </div>
+            </fieldset>
+          ) : null}
 
           {/* Permission attestation. This is the publish gate: a submission
               cannot reach "published" until permission_confirmed is true.

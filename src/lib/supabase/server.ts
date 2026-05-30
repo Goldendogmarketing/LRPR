@@ -136,6 +136,8 @@ export type SubmissionRow = {
   // Immersive payload captured at submission time.
   photos: SubmissionPhoto[];
   listed_by: Record<string, unknown>;
+  // FSBO paid upgrade → published listing renders immersive.
+  immersive_upgrade: boolean;
   published_at: string | null;
   created_at: string;
   updated_at: string;
