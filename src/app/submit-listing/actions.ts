@@ -21,6 +21,10 @@ import {
 import { canSubmitListings } from "@/lib/tiers";
 import { geocodeAddress } from "@/lib/geocoding";
 import { notify, buildSubmissionAdminEmail } from "@/lib/notifications";
+import {
+  createListingCheckoutSession,
+  listingFeeConfigured,
+} from "@/lib/listing-payments";
 
 function toNumberOrNull(value: string): number | null {
   if (!value) return null;
@@ -100,6 +104,12 @@ export async function submitListingAction(formData: FormData) {
     redirect("/submit-listing");
   }
 
+  // FSBO pays a one-time fee per listing (agents are covered by their
+  // subscription, admins are exempt). When the fee isn't configured yet we
+  // let the listing through free so FSBO isn't blocked during setup.
+  const requiresListingPayment =
+    profile.role === "fsbo" && !isAdmin && listingFeeConfigured();
+
   // Upload photos before inserting the submission row so the row carries
   // the final URLs from the jump. If any photo fails validation, surface
   // the error and abort before writing anything to the DB.
@@ -158,7 +168,8 @@ export async function submitListingAction(formData: FormData) {
     .insert({
       submitter_profile_id: profile.id,
       submission_type: record.submissionType,
-      status: record.status,
+      // FSBO listings start in payment_pending until the one-time fee clears.
+      status: requiresListingPayment ? "payment_pending" : record.status,
       source_type: record.sourceType,
       listing_status: record.listingStatus,
       property_type: record.propertyType,
@@ -170,8 +181,8 @@ export async function submitListingAction(formData: FormData) {
       baths: toNumberOrNull(record.baths),
       notes: record.notes,
       account_validated: true,
-      payment_required: record.paymentRequired,
-      payment_complete: record.paymentComplete,
+      payment_required: requiresListingPayment ? true : record.paymentRequired,
+      payment_complete: requiresListingPayment ? false : record.paymentComplete,
       admin_approved: record.adminApproved,
       permission_confirmed: record.permissionConfirmed,
       photos: uploadedPhotos.map((p, i) => ({
@@ -230,9 +241,83 @@ export async function submitListingAction(formData: FormData) {
     notificationTo: notification.to,
     checkoutStatus: checkout.status,
     geocoded: geo.ok,
+    requiresListingPayment,
   });
+
+  // FSBO: send to Stripe to pay the one-time listing fee. On success the
+  // webhook flips the submission to payment_complete + pending_review.
+  if (requiresListingPayment) {
+    const url = await createListingCheckoutSession(supabase, {
+      submissionId: data.id,
+      profileId: profile.id,
+      email: primaryEmail,
+    });
+    if (url) {
+      redirect(url);
+    }
+    // Couldn't start checkout — listing is saved as payment_pending; let the
+    // user retry from the submit page.
+    redirect(
+      `/submit-listing?submitted=${data.id}&status=${data.status}&payment_error=1`,
+    );
+  }
 
   redirect(
     `/submit-listing?submitted=${data.id}&status=${data.status}&checkout=${checkout.status}`,
   );
+}
+
+/**
+ * Re-start the one-time listing-fee checkout for an existing payment_pending
+ * submission (used by the "Complete payment" button after a cancelled
+ * checkout). Verifies the submission belongs to the signed-in user.
+ */
+export async function retryListingPayment(formData: FormData) {
+  const { userId } = await auth();
+  if (!userId) redirect("/sign-in?redirect_url=/submit-listing");
+
+  const submissionId = String(formData.get("submissionId") ?? "").trim();
+  if (!submissionId) redirect("/submit-listing");
+
+  const user = await currentUser();
+  const primaryEmail =
+    user?.emailAddresses.find((e) => e.id === user.primaryEmailAddressId)
+      ?.emailAddress ?? user?.emailAddresses[0]?.emailAddress ?? undefined;
+  const fullName =
+    [user?.firstName, user?.lastName].filter(Boolean).join(" ") || null;
+
+  const supabase = createSupabaseServerClient();
+  const profile = await getOrCreateProfile(supabase, {
+    clerkUserId: userId,
+    email: primaryEmail ?? "unknown@lrpr.local",
+    fullName,
+  });
+
+  // Ownership + status check.
+  const { data: submission } = await supabase
+    .from("submissions")
+    .select("id, submitter_profile_id, payment_complete")
+    .eq("id", submissionId)
+    .maybeSingle<{
+      id: string;
+      submitter_profile_id: string | null;
+      payment_complete: boolean;
+    }>();
+
+  if (
+    !submission ||
+    submission.submitter_profile_id !== profile.id ||
+    submission.payment_complete
+  ) {
+    redirect("/submit-listing");
+  }
+
+  const url = await createListingCheckoutSession(supabase, {
+    submissionId,
+    profileId: profile.id,
+    email: primaryEmail,
+  });
+  if (url) redirect(url);
+
+  redirect(`/submit-listing?submitted=${submissionId}&payment_error=1`);
 }

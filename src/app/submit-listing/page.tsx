@@ -10,7 +10,7 @@ import {
   canSubmitListings,
   type TierId,
 } from "@/lib/tiers";
-import { submitListingAction } from "./actions";
+import { submitListingAction, retryListingPayment } from "./actions";
 
 const sourceTypes = [
   ["Owner submitted", "For property owners submitting a residential sale, land/lot, or rental record they have permission to advertise."],
@@ -51,7 +51,15 @@ export const metadata = {
 };
 
 type SubmitListingPageProps = {
-  searchParams?: Promise<{ submitted?: string; status?: string; checkout?: string; error?: string }>;
+  searchParams?: Promise<{
+    submitted?: string;
+    status?: string;
+    checkout?: string;
+    error?: string;
+    paid?: string;
+    payment_cancelled?: string;
+    payment_error?: string;
+  }>;
 };
 
 export default async function SubmitListingPage({ searchParams }: SubmitListingPageProps) {
@@ -59,6 +67,9 @@ export default async function SubmitListingPage({ searchParams }: SubmitListingP
   const submittedId = params?.submitted;
   const error = params?.error;
   const status = params?.status;
+  const paidId = params?.paid;
+  const cancelledId = params?.payment_cancelled;
+  const paymentError = params?.payment_error;
 
   // Tier gate: middleware already enforced "signed in." Here we additionally
   // enforce "tier is FSBO, Agent, or Admin."
@@ -159,7 +170,28 @@ export default async function SubmitListingPage({ searchParams }: SubmitListingP
         </div>
 
         <form action={submitListingAction} className="rounded-[2.5rem] bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.08)] ring-1 ring-slate-200 sm:p-7">
-          {submittedId ? (
+          {paidId ? (
+            <div className="mb-5 rounded-3xl bg-emerald-50 p-4 text-sm font-bold leading-6 text-emerald-950 ring-1 ring-emerald-100">
+              ✅ Payment received — your listing fee is paid and the submission is now in the <Link href="/admin" className="underline">review queue</Link>. We&apos;ll email you when it&apos;s approved and published.
+            </div>
+          ) : null}
+          {cancelledId ? (
+            <div className="mb-5 rounded-3xl bg-amber-50 p-4 text-sm font-bold leading-6 text-amber-950 ring-1 ring-amber-100">
+              <p>Checkout was cancelled — you haven&apos;t been charged. Your listing is saved as <span className="font-black">pending payment</span>. Complete the one-time listing fee to send it to review:</p>
+              <form action={retryListingPayment} className="mt-3">
+                <input type="hidden" name="submissionId" value={cancelledId} />
+                <button type="submit" className="rounded-full bg-slate-950 px-5 py-2.5 text-xs font-black uppercase tracking-[0.16em] text-white hover:bg-slate-800">
+                  Complete payment →
+                </button>
+              </form>
+            </div>
+          ) : null}
+          {paymentError ? (
+            <div className="mb-5 rounded-3xl bg-rose-50 p-4 text-sm font-bold leading-6 text-rose-950 ring-1 ring-rose-100">
+              Your listing was saved, but we couldn&apos;t start checkout. Please try the &ldquo;Complete payment&rdquo; option or resubmit.
+            </div>
+          ) : null}
+          {submittedId && !paidId && !cancelledId ? (
             <div className="mb-5 rounded-3xl bg-emerald-50 p-4 text-sm font-bold leading-6 text-emerald-950 ring-1 ring-emerald-100">
               ✅ Submission saved as <span className="font-black">{submittedId}</span>. Current status: <span className="font-black">{status}</span>. It will appear in the <Link href="/admin" className="underline">admin review queue</Link> for permission verification, source quality, and final approval before publishing.
             </div>

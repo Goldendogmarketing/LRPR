@@ -42,6 +42,33 @@ export async function POST(req: Request) {
     switch (event.type) {
       case "checkout.session.completed": {
         const s = event.data.object as Stripe.Checkout.Session;
+
+        // FSBO one-time listing fee (payment mode) — advance the submission.
+        if (s.mode === "payment" && s.metadata?.submissionId) {
+          const submissionId = s.metadata.submissionId;
+          await supabase
+            .from("submissions")
+            .update({
+              payment_complete: true,
+              status: "pending_review",
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", submissionId);
+          await supabase
+            .from("payments")
+            .update({
+              status: "paid",
+              stripe_payment_intent_id:
+                typeof s.payment_intent === "string"
+                  ? s.payment_intent
+                  : s.payment_intent?.id ?? null,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("stripe_checkout_session_id", s.id);
+          break;
+        }
+
+        // Otherwise: a subscription tier checkout.
         const profileId = s.metadata?.profileId;
         if (profileId) {
           const update: Record<string, unknown> = {
